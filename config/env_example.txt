@@ -1,8 +1,8 @@
 
-// copy & paste all the text in this file
-// (except this paragraph) into to your
-// .env or config.env file and fill in the
-// actual values of the field
+/*  copy & paste all the text below this
+    this paragraph into to your .env or
+    config.env file and fill in the
+    actual values of the field        */
 
 
 PORT=your_actual_port

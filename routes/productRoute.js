@@ -1,17 +1,28 @@
 
 
 import {Router} from 'express'
-import {getAllProducts} from '../controllers/productContoller.js'
+import {getProducts,createProduct,
+        updateProduct,deleteProduct,
+        getProductDetails} from '../controllers/productContoller.js'
 
 
 
 const productRouter = Router()
 
 
+productRouter.route('/products')
+            .get(getProducts)
+            
 
-productRouter.route("/").get(getAllProducts)
+productRouter.route("/product/new")
+            .post(createProduct)
 
+productRouter.route('/product/:id')
+            .get(getProductDetails)
+            .patch(updateProduct)
+            .delete(deleteProduct)
 
+// productRouter.routes("/product/")
 
 
 

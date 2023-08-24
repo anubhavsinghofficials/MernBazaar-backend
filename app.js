@@ -18,6 +18,9 @@ app.use("/api/v1",productRoute)
 
 
 
-app.listen(PORT, ()=>{
-    console.log(`> listening at http://localhost:${PORT}`)
-})
+const server = app.listen(PORT, ()=>{
+                console.log(`> listening at http://localhost:${PORT}`)
+            })
+
+
+export default server
