@@ -14,17 +14,20 @@ const productSchema = new mongoose.Schema({
     
     description:{
         type:String,
-        required:[true,"Product description is required"]
+        required:[true,"Product description is required"],
+        trim:true,
     },
 
     category:{
         type:String,
-        required:[true,"Product category is required"]
+        required:[true,"Product category is required"],
+        trim:true,
     },
 
     autoTags:{
         type:String,
-        required:[true,"autoTags is required"]
+        required:[true,"autoTags is required"],
+        trim:true,
     },
 
     price:{

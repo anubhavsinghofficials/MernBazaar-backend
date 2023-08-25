@@ -82,6 +82,7 @@ export const deleteProduct = async (req,res) => {
 
 
 
+
 // ______________________________________USER ROUTES
 
 
@@ -115,7 +116,6 @@ export const getProducts = async (req,res) => {
         res.status(400).json({error:error.message})
     }
 }
-
 
 
 
