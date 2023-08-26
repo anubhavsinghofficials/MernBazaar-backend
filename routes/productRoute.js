@@ -4,7 +4,7 @@ import {Router} from 'express'
 import {getProducts,createProduct,
         updateProduct,deleteProduct,
         getProductDetails,} from '../controllers/productContoller.js'
-import { auth,adminAuth } from '../middlewares/auth.js'
+import { sellerAuth } from '../middlewares/auth.js'
 
 
 
@@ -12,15 +12,15 @@ const productRouter = Router()
 
 
 productRouter.route('/products')
-            .get(auth,getProducts)
+             .get(getProducts)
 
 productRouter.route("/product/new")
-            .post(auth,adminAuth,createProduct)
+             .post(sellerAuth,createProduct)
 
 productRouter.route('/product/:id')
-            .get(getProductDetails)
-            .patch(auth,adminAuth,updateProduct)
-            .delete(auth,adminAuth,deleteProduct)
+             .get(getProductDetails)
+             .patch(sellerAuth,updateProduct)
+             .delete(sellerAuth,deleteProduct)
 
 // productRouter.routes("/product/")
 

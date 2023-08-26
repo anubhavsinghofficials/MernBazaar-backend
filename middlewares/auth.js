@@ -1,8 +1,12 @@
 
 import jwt from 'jsonwebtoken'
 import User from '../models/userModel.js'
+import Seller from '../models/sellerModel.js'
 
-export const auth = async (req,res,next) => {
+
+
+// User Authentication + Authorization
+export const userAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
     if (!token) {
@@ -19,7 +23,7 @@ export const auth = async (req,res,next) => {
 
         req.token = token
         req.user = userFound
-        // req.user.role = "admin"
+        // req.user.role = "seller"
         next()
     }
     catch (error) {
@@ -28,14 +32,40 @@ export const auth = async (req,res,next) => {
 }
 
 
-export const adminAuth = async (req,res,next) => {
 
-    if (req.user.role !== "admin") {
-        return res.status(403).json({error:"You are not an admin"})
+// Seller Authentication + Authorization
+export const sellerAuth = async (req,res,next) => {
+
+    const token = req.cookies.jwt
+    if (!token) {
+        return res.status(400).json({error:"authorization failed"})
     }
 
-    next()
+    try {
+        const payload = await jwt.verify(token,process.env.JWT_KEY)
+        const sellerFound = await Seller.findById(payload._id)
+
+        if (!sellerFound) {
+            return res.status(401).json({error:"You have to be a seller to do this"})
+        }
+
+        req.token = token
+        req.seller = sellerFound
+        // req.user.role = "seller"
+        next()
+    }
+    catch (error) {
+         res.status(401).json({error:error.message})
+    }
 }
+
+
+// export const sellerAuthorize = async (req,res,next) => {
+//     if (req.user.role !== "seller") {
+//         return res.status(403).json({error:"You have to be a seller to do this"})
+//     }
+//     next()
+// }
 
 
 // remember!! The next() function doesn't skip the remaining

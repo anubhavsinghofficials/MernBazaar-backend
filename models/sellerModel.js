@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken'
 
 // Schema Creation ________________________________________
 
-const userSchema = new mongoose.Schema({
+const sellerSchema = new mongoose.Schema({
 
     name:{
         type:String,
@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
         maxLength:[20,"Name can't exceed 20 characters"],
         minLength:[3,"Name must atleast be of 3 characters"],
     },
+
     email:{
         type:String,
         required: [true,"Email is required"],
@@ -25,14 +26,15 @@ const userSchema = new mongoose.Schema({
         unique:true,
         trim:true,
     },
+
     password:{
         type:String,
         required: [true,"Password is required"],
         trim:true,
-        // maxLength:[20,"Password can't exceed 20 characters"],
         minLength:[6,"Password must atleast be of 6 characters"],
         select:false
     },
+
     avatar:{
         public_id:{
             type:String,
@@ -40,13 +42,31 @@ const userSchema = new mongoose.Schema({
         },
         url:{
             type:String,
-            required:[true,"There must be a thumbnail"],
+            required:[true,"There must be an avatar"],
         }
     },
+
+    description:{
+        type:String,
+        required:[true,"Seller description is required"],
+        trim:true,
+    },
+
     role:{
         type:String,
         enum: ['user', 'seller'],
-        default:"user"
+        default:"seller"
+    },
+
+    joinedAt:{
+        type:Date,
+        default:Date.now
+    },
+
+    mernScore:{
+        type:Number,
+        default:0,
+        required:true,
     },
 
     resetPasswordToken:String,
@@ -67,14 +87,14 @@ const userSchema = new mongoose.Schema({
 
 // Schema Methods _________________________________________
 
-userSchema.pre("save",async function (next){
+sellerSchema.pre("save",async function (next){
     if (this.isModified("password")) {
        this.password = await bcrypt.hash(this.password,10)
     }
     next()
 })
 
-userSchema.methods.genAuthToken = async function (res) {
+sellerSchema.methods.genAuthToken = async function (res) {
     try {
         const token = await jwt.sign({_id:this._id},
                                      process.env.JWT_KEY,
@@ -93,5 +113,5 @@ userSchema.methods.genAuthToken = async function (res) {
 
 // Model Export __________________________________________
 
-const User = mongoose.model("user",userSchema)
-export default User
+const Seller = mongoose.model("seller",sellerSchema)
+export default Seller

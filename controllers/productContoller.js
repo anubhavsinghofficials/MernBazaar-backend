@@ -8,6 +8,10 @@ import Product from '../models/productModel.js'
 
 export const createProduct = async (req,res) => {
     const {price, title, description, category} = req.body
+
+    req.body.seller = req.seller._id
+    // or seller = req.seller._id
+    // then add seller to new Product({})
     
     const net = price.actual*(1 - price.discount/100)
     const updatedPrice = {...price, net}

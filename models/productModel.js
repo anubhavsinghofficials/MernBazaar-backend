@@ -105,11 +105,18 @@ const productSchema = new mongoose.Schema({
             }
         ]
     },
+    
+    seller:{
+        type:mongoose.Schema.ObjectId,
+        ref:"seller",
+        required:[true,"Seller Id is missing"],
+    },
 
     createdAt:{
         type:Date,
         default:Date.now
     }
+
 })
 
 
