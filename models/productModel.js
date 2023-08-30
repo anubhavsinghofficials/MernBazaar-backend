@@ -81,32 +81,42 @@ const productSchema = new mongoose.Schema({
         ]
     },
 
-    ratings:{
-        count:{
-            type:Number,
-            default:0
-        },
-        overall:{
-            type:Number,
-            default:0
-        },
-        review:[
-            {
-                userName: {
-                    type: String,
-                    required:true
-                },
-                userRating:{
-                    type:Number,
-                    required:true
-                },
-                userMessage:{
-                    type:String,
-                    required:true
-                }
-            }
-        ]
+    totalReviews:{
+        type:Number,
+        default:0
     },
+
+    overallRating:{
+        type:Number,
+        default:0
+    },
+
+    reviews:[
+        {
+            user:{
+                type:mongoose.Schema.ObjectId,
+                ref:"user",
+                required:[true,"User Id is missing"],
+            },
+            name: {
+                type: String,
+                required:true
+            },
+            rating:{
+                type:Number,
+                required:true
+            },
+            comment:{
+                type:String,
+                required:true
+            },
+            verified:{
+                type:Boolean,
+                default:false,
+                require:true
+            }
+        }
+    ],
     
     seller:{
         type:mongoose.Schema.ObjectId,

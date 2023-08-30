@@ -256,6 +256,10 @@ export const getActiveSellers = async (req,res) => {
     try {
         const {pageNo,pageLength} = req.query
 
+        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+            res.status(400).json({error:"Invalid Page Length or Page Number"})
+        }
+
         const sellerCount = await Seller.countDocuments({blacklisted:false})
         const sellers = await Seller.find({blacklisted:false})
                                 .limit(pageLength)
@@ -272,6 +276,10 @@ export const getActiveSellers = async (req,res) => {
 export const getBlackListedSellers = async (req,res) => {
     try {
         const {pageNo,pageLength} = req.query
+
+        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+            res.status(400).json({error:"Invalid Page Length or Page Number"})
+        }
 
         const sellerCount = await Seller.countDocuments({blacklisted:true})
         const sellers = await Seller.find({blacklisted:true})

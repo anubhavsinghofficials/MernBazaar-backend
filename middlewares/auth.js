@@ -62,6 +62,7 @@ export const sellerAuth = async (req,res,next) => {
 
 
 
+
 export const adminAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
@@ -87,6 +88,25 @@ export const adminAuth = async (req,res,next) => {
 }
 
 
+
+
+// this will help in getting user's review
+export const tempUserAuth = async (req,res,next) => {
+    const token = req.cookies.jwt
+    if (token) {
+        try {
+            const payload = await jwt.verify(token,process.env.JWT_KEY)
+            const userFound = await User.findById(payload._id).select("+password")
+            if (userFound) {
+                req.user = userFound
+            }
+        }
+        catch (error) {
+            res.status(401).json({error:error.message})
+        }
+    }
+    next()
+}
 
 
 
@@ -120,3 +140,4 @@ export const adminAuth = async (req,res,next) => {
 // remember!! The next() function doesn't skip the remaining
 // lines of code in the current function, but it rather signals
 // to move to the next middleware or route handler in the chain.
+

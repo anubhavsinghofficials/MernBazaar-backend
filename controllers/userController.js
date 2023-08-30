@@ -255,6 +255,10 @@ export const getActiveUsers = async (req,res) => {
     try {
         const {pageNo,pageLength} = req.query
 
+        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+            res.status(400).json({error:"Invalid Page Length or Page Number"})
+        }
+
         const userCount = await User.countDocuments({blacklisted:false})
         const users = await User.find({blacklisted:false})
                                 .limit(pageLength)
@@ -271,6 +275,10 @@ export const getActiveUsers = async (req,res) => {
 export const getBlackListedUsers = async (req,res) => {
     try {
         const {pageNo,pageLength} = req.query
+
+        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+            res.status(400).json({error:"Invalid Page Length or Page Number"})
+        }
 
         const userCount = await User.countDocuments({blacklisted:true})
         const users = await User.find({blacklisted:true})
