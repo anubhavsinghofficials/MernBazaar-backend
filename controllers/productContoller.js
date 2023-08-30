@@ -3,10 +3,10 @@
 import Product from '../models/productModel.js'
 
 
-// _____________________________________ADMIN ROUTES
-
+// ________________________________ SELLER ROUTES
 
 export const createProduct = async (req,res) => {
+
     const {price, title, description, category} = req.body
 
     req.body.seller = req.seller._id
@@ -38,27 +38,24 @@ export const updateProduct = async (req,res) => {
 
         if (!product) {
             return res.status(400).json({error:"product not found"})
-         }
+        }
+
+        // see comments at bottom to see why we used toString()
+        if (product.seller.toString() !== req.seller._id.toString()) {
+            return res.status(400).json({error:"You can only update your own products"})
+        }   // is this even needed ?
 
         let autoTags = product.autoTags
 
-        if (title)
-        autoTags = autoTags.replace(product.description, description)
-        if (description)
-        autoTags = autoTags.replace(product.description, description)
-        if (category)
-        autoTags = autoTags.replace(product.category, category)
-
+        autoTags = title ? autoTags.replace(product.title, title) : autoTags
+        autoTags = description ? autoTags.replace(product.description, description) : autoTags
+        autoTags = category ? autoTags.replace(product.category, category) : autoTags
 
         // see bottom comments
-        const result = await Product.findByIdAndUpdate(req.params.id,
-                                                       {...req.body,autoTags},{
-                                                        new:true,
-                                                        runValidators:true
-                                                       })
-        res.status(200).json({result})
-
-    } catch (error) {
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id,{...req.body,autoTags},{ new:true, runValidators:true })
+        res.status(200).json({updatedProduct})
+    }
+    catch (error) {
         res.status(400).json({error:error.message})
     }
 }
@@ -68,27 +65,28 @@ export const updateProduct = async (req,res) => {
 
 export const deleteProduct = async (req,res) => {
     try {
-        // u can also findById and then after if(!product), product.remove()                                     
-        const product = await Product.findByIdAndDelete(req.params.id)
+        const product = await Product.findById(req.params.id)
 
         if (!product) {
-           return res.status(400).json({error:"product doesn't exist already"})
+            return res.status(400).json({error:"product not found"})
+        }
+        if (product.seller.toString() !== req.seller._id.toString()) {
+            return res.status(400).json({error:"You can only delete your own products"})
         }
 
-        res.status(200).json({product})
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id)
+        res.status(200).json({deletedProduct})
     
     } catch (error) {
         res.status(400).json({error:error.message})
     }
-
 }
 
 
 
 
 
-// ______________________________________USER ROUTES
-
+// _______________________________ GENERAL ROUTES
 
 export const getProducts = async (req,res) => {
     try {
@@ -127,17 +125,26 @@ export const getProducts = async (req,res) => {
 export const getProductDetails = async (req,res) => {
     try {
         const productDetails = await Product.findById(req.params.id)
-
+                                    .populate({
+                                        path:"seller",
+                                        select:"name email avatar.url description joinedAt mernScore"
+                                    })
         if (!productDetails) {
             return res.status(400).json({error:"Product not found"})
         }
 
         res.status(200).json({productDetails})
-    
-    } catch (error) {
+    }
+    catch (error) {
         res.status(400).json({error:error.message})
     }
 }
+
+
+
+
+
+
 
 
 
@@ -152,3 +159,10 @@ export const getProductDetails = async (req,res) => {
 // const result = await Product.findByIdAndUpdate(req.params.id,{
 //     $set: { 'images.thumbnail.url': 'updated 2 xyz' } 
 // })
+
+
+// why used toString() ??
+// These are object-ids/objects (see type of), so if you
+// compare it would result false even if they look same
+// strings thats why we used toString() (which is a non-
+// mutating method) to convert to string and then compare

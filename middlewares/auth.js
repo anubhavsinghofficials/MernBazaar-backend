@@ -2,6 +2,8 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/userModel.js'
 import Seller from '../models/sellerModel.js'
+import Admin from '../models/adminModel.js'
+
 
 
 
@@ -10,20 +12,19 @@ export const userAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
     if (!token) {
-        return res.status(400).json({error:"authorization failed"})
+        return res.status(400).json({error:"authorization failed, Login to your account"})
     }
 
     try {
         const payload = await jwt.verify(token,process.env.JWT_KEY)
-        const userFound = await User.findById(payload._id)
+        const userFound = await User.findById(payload._id).select("+password")
 
         if (!userFound) {
-            return res.status(401).json({error:"authorization failed"})
+            return res.status(401).json({error:"login with your user account to do this"})
         }
 
         req.token = token
         req.user = userFound
-        // req.user.role = "seller"
         next()
     }
     catch (error) {
@@ -33,17 +34,18 @@ export const userAuth = async (req,res,next) => {
 
 
 
-// Seller Authentication + Authorization
+
+
 export const sellerAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
     if (!token) {
-        return res.status(400).json({error:"authorization failed"})
+        return res.status(400).json({error:"authorization failed, Login to your account"})
     }
 
     try {
         const payload = await jwt.verify(token,process.env.JWT_KEY)
-        const sellerFound = await Seller.findById(payload._id)
+        const sellerFound = await Seller.findById(payload._id).select("+password")
 
         if (!sellerFound) {
             return res.status(401).json({error:"You have to be a seller to do this"})
@@ -51,13 +53,60 @@ export const sellerAuth = async (req,res,next) => {
 
         req.token = token
         req.seller = sellerFound
-        // req.user.role = "seller"
         next()
     }
     catch (error) {
          res.status(401).json({error:error.message})
     }
 }
+
+
+
+export const adminAuth = async (req,res,next) => {
+
+    const token = req.cookies.jwt
+    if (!token) {
+        return res.status(400).json({error:"authorization failed, Login to your account"})
+    }
+
+    try {
+        const payload = await jwt.verify(token,process.env.JWT_KEY)
+        const adminFound = await Admin.findById(payload._id).select("+password")
+
+        if (!adminFound) {
+            return res.status(401).json({error:"You have to be an admin to do this"})
+        }
+
+        req.token = token
+        req.admin = adminFound
+        next()
+    }
+    catch (error) {
+         res.status(401).json({error:error.message})
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // export const sellerAuthorize = async (req,res,next) => {

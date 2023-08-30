@@ -31,6 +31,7 @@ const sellerSchema = new mongoose.Schema({
         type:String,
         required: [true,"Password is required"],
         trim:true,
+        maxLength:[12,"Password can't exceed 12 characters"],
         minLength:[6,"Password must atleast be of 6 characters"],
         select:false
     },
@@ -52,12 +53,6 @@ const sellerSchema = new mongoose.Schema({
         trim:true,
     },
 
-    role:{
-        type:String,
-        enum: ['user', 'seller'],
-        default:"seller"
-    },
-
     joinedAt:{
         type:Date,
         default:Date.now
@@ -66,7 +61,13 @@ const sellerSchema = new mongoose.Schema({
     mernScore:{
         type:Number,
         default:0,
-        required:true,
+        required:true
+    },
+
+    blacklisted:{
+        type:Boolean,
+        default:false,
+        required:true
     },
 
     resetPasswordToken:String,
@@ -96,12 +97,8 @@ sellerSchema.pre("save",async function (next){
 
 sellerSchema.methods.genAuthToken = async function (res) {
     try {
-        const token = await jwt.sign({_id:this._id},
-                                     process.env.JWT_KEY,
-                                     {expiresIn:"10d"})
-
+        const token = await jwt.sign({_id:this._id},process.env.JWT_KEY,{expiresIn:"10d"})
         this.tokens = [...this.tokens,{token}]
-        await this.save()
         return token
     }
     catch (error) {

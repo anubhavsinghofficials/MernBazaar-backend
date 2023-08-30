@@ -4,6 +4,8 @@
 import mongoose from 'mongoose'
 
 
+
+// Schema Creation ________________________________________
 const productSchema = new mongoose.Schema({
 
     title:{
@@ -120,13 +122,8 @@ const productSchema = new mongoose.Schema({
 })
 
 
-
-
-
-
-
+// Model Export __________________________________________
 const Product = mongoose.model("product",productSchema)
-
 export default Product
 
 

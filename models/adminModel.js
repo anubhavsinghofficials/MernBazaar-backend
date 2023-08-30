@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken'
 
 // Schema Creation ________________________________________
 
-const userSchema = new mongoose.Schema({
+const adminSchema = new mongoose.Schema({
 
     name:{
         type:String,
@@ -48,12 +48,6 @@ const userSchema = new mongoose.Schema({
         }
     },
 
-    blacklisted:{
-        type:Boolean,
-        default:false,
-        required:true
-    },
-
     resetPasswordToken:String,
     resetPasswordExpire:Date,
 
@@ -72,14 +66,14 @@ const userSchema = new mongoose.Schema({
 
 // Schema Methods _________________________________________
 
-userSchema.pre("save",async function (next){
+adminSchema.pre("save",async function (next){
     if (this.isModified("password")) {
        this.password = await bcrypt.hash(this.password,10)
     }
     next()
 })
 
-userSchema.methods.genAuthToken = async function (res) {
+adminSchema.methods.genAuthToken = async function (res) {
     try {
         const token = await jwt.sign({_id:this._id},process.env.JWT_KEY,{expiresIn:"10d"})
         this.tokens = [...this.tokens,{token}]
@@ -93,6 +87,5 @@ userSchema.methods.genAuthToken = async function (res) {
 
 
 // Model Export __________________________________________
-
-const User = mongoose.model("user",userSchema)
-export default User
+const Admin = mongoose.model("admin",adminSchema)
+export default Admin

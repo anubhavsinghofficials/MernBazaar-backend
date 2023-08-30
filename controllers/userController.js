@@ -1,9 +1,14 @@
 
 
+import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
+import Admin from '../models/adminModel.js'
 import bcrypt from 'bcryptjs'
 
 
+
+
+//________________________________ USER CONTROLLERS
 
 export const registerUser = async (req,res) => {
 
@@ -13,35 +18,48 @@ export const registerUser = async (req,res) => {
        return res.status(400).json({error:"please fill all the details"})
     }
 
-    const UserFound = await User.findOne({email})
-    if (UserFound) {
-        return res.status(400).json({error:"Email already exists"})
-    }
-
-    const user = new User({
-        name,
-        email,
-        password,
-        avatar:{
-            public_id:"sample_id",
-            url:"laskdfalskdjfa;sldfjalsdkfj"
-        }
-    })
-    
     try {
+        const UserFound = await User.findOne({email})
+
+        if (UserFound) {
+            return res.status(400).json({error:"Email already exists"})
+        }
+        else {
+            const SellerFound = await Seller.findOne({email})
+            if (SellerFound) {
+                return res.status(400).json({error:"Email already exists"})
+            }
+            else{
+                const AdminFound = await Admin.findOne({email})
+                if (AdminFound) {
+                    return res.status(400).json({error:"Email already exists"})
+                }
+            }
+        }
+
+        const user = new User({
+            name,
+            email,
+            password,
+            avatar:{
+                public_id:"sample_id",
+                url:"laskdfalskdjfa;sldfjalsdkfj"
+            }
+        })
+        
+        const token = await user.genAuthToken(res)
         await user.save()
 
-        const token = await user.genAuthToken(res)
         const cookieOptions = {
-                                httpOnly: true,
-                                expires: new Date(
-                                            Date.now() + 10*24*60*60*1000
-                                        )} // see bottom comments
+                httpOnly: true,
+                expires: new Date(
+                    Date.now() + 10*24*60*60*1000
+                )}
         res.cookie("jwt",token, cookieOptions)
         res.status(201).json({token,user})
     }
     catch (error) {
-        res.status(201).json({error:error.message})
+        res.status(400).json({error:error.message})
     }
 }
 
@@ -53,27 +71,38 @@ export const logInUser = async (req,res) => {
 
     if(!email || !password){
         return res.status(400).json({error:"please fill all the details"})
-     }
-     
-    const FoundUser = await User.findOne({email}).select("+password")
-    if (!FoundUser) {
-         return res.status(400).json({error:"User not found!!"})
     }
 
-    const matched = await bcrypt.compare(password,FoundUser.password)
-    if (!matched) {
-         return res.status(401).json({error:"invalid Credentials"})
+    try {
+        const FoundUser = await User.findOne({email}).select("+password")
+        if (!FoundUser) {
+            return res.status(400).json({error:"User not found!!"})
+        }
+        else if (FoundUser.blacklisted){
+            const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
+            return res.status(400).json({error})
+        }
+
+        const matched = await bcrypt.compare(password,FoundUser.password)
+        if (!matched) {
+            return res.status(401).json({error:"invalid Credentials"})
+        }
+
+        const token = await FoundUser.genAuthToken(res)
+        await FoundUser.save({ validateBeforeSave: false })
+
+        const cookieOptions = {
+                    httpOnly: true,
+                    expires: new Date(
+                        Date.now() + 10*24*60*60*1000
+                    )} // see bottom comments
+                            
+        res.cookie("jwt",token, cookieOptions)
+        res.status(200).json({token,FoundUser})
     }
-
-    const token = await FoundUser.genAuthToken(res)
-    const cookieOptions = {
-                httpOnly: true,
-                expires: new Date(
-                            Date.now() + 10*24*60*60*1000
-                        )} // see bottom comments
-
-    res.cookie("jwt",token, cookieOptions)
-    res.status(200).json({token,FoundUser})
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
 }
 
 
@@ -83,8 +112,8 @@ export const logOutUser = async (req,res) => {
         res.clearCookie("jwt")
 
         req.user.tokens = req.user.tokens.filter(ele => ele.token !== req.token)
-        await req.user.save()
-    
+        await req.user.save({ validateBeforeSave: false })
+
         res.status(200).json({message:"logout successful!!"})
     }
     catch (error) {
@@ -100,18 +129,203 @@ export const logOutFromAllDevices = async (req,res) => {
         res.clearCookie("jwt")
 
         req.user.tokens = []
-        await req.user.save()
+        await req.user.save({ validateBeforeSave: false })
     
         res.status(200).json({message:"logged out from all the devices!!"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
-        console.log(error)
     }
 }
 
 
-// authenticate user only function???
+
+export const deleteUserAccount = async (req,res) => {
+    try {
+        if (req.user.blacklisted){
+            const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
+            return  res.status(400).json({error})
+        }
+
+        const deletedUser = await User.findByIdAndDelete(req.user._id)
+        res.status(200).json({deletedUser})
+
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+export const getUserDetails = async (req,res) => {
+    if (req.user.blacklisted){
+        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
+        return res.status(400).json({error})
+    }
+    res.status(200).json(req.user)
+    // or send only relevant data by either
+    // extracting it from the req.user or
+    // findById(req.user._id) 
+}
+
+
+
+export const updateUserDetails = async (req,res) => {
+
+    if (req.user.blacklisted){
+        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
+        return res.status(400).json({error})
+    }
+
+    const {name, email, avatar} = req.body
+
+    let updates = {}
+    updates = name ? {...updates,name} : {...updates,name:req.user.name}
+    updates = avatar ? {...updates,avatar} : {...updates,avatar:req.user.avatar}
+    
+    try {
+        if (email) {
+            const UserFound = await User.findOne({email})
+            if (UserFound) {
+                return res.status(400).json({error:"Email already exists"})
+            }
+            else {
+                const SellerFound = await Seller.findOne({email})
+                if (SellerFound) {
+                    return res.status(400).json({error:"Email already exists"})
+                }
+                else{
+                    const AdminFound = await Admin.findOne({email})
+                    if (AdminFound) {
+                        return res.status(400).json({error:"Email already exists"})
+                    }else{
+                        updates = {...updates,email}
+                    }
+                }
+            }
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, { new:true, runValidators:true })
+        res.status(201).json(updatedUser)
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+export const updateUserPassword = async (req,res) => {
+
+    if (req.user.blacklisted){
+        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
+        return res.status(400).json({error})
+    }
+
+    const {oldPassword, newPassword} = req.body
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({error:"Kindly fill all the fields"})
+    }
+
+    const matched = await bcrypt.compare(oldPassword,req.user.password)
+
+    if (!matched) {
+        return res.status(400).json({error:"the old password didn't matched"})
+    }
+    else if(oldPassword === newPassword){
+        return res.status(400).json({error:"Enter a different new password"})
+    }
+
+    try {
+        req.user.password = newPassword
+        await req.user.save()
+        res.status(201).json(req.user)
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+
+//_______________________________ ADMIN CONTROLLERS
+
+export const getActiveUsers = async (req,res) => {
+    try {
+        const {pageNo,pageLength} = req.query
+
+        const userCount = await User.countDocuments({blacklisted:false})
+        const users = await User.find({blacklisted:false})
+                                .limit(pageLength)
+                                .skip((+pageNo-1)*(+pageLength))
+
+        res.status(200).json({userCount,users})
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+export const getBlackListedUsers = async (req,res) => {
+    try {
+        const {pageNo,pageLength} = req.query
+
+        const userCount = await User.countDocuments({blacklisted:true})
+        const users = await User.find({blacklisted:true})
+                                .limit(pageLength)
+                                .skip((+pageNo-1)*(+pageLength))
+
+        res.status(200).json({userCount,users})
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+export const toggleBlackListedUser = async (req,res) => {
+    try {
+        const FoundUser = await User.findById(req.params.id)
+        FoundUser.blacklisted = !FoundUser.blacklisted
+        await FoundUser.save()
+
+        if (FoundUser.blacklisted) {
+            return res.status(200).json({message:"User blacklisted"})
+        } else {
+            return res.status(200).json({message:"User account activated again!! "})
+        }
+    
+    } catch (error) {
+         res.status(400).json({error:error.message})
+    }
+}
+
+
+export const getUserData = async (req,res) => {
+    try {
+        const FoundUser = await User.findById(req.params.id)
+        res.status(200).json({user:FoundUser})
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+export const deleteUser = async (req,res) => {
+    try {
+        const deletedUser = await User.findByIdAndDelete(req.params.id)
+        res.status(200).json({deletedUser})
+    } catch (error) {
+         res.status(400).json({error:error.message})
+    }
+}
+
+
+
+
+
 
 
 
@@ -121,3 +335,24 @@ export const logOutFromAllDevices = async (req,res) => {
 //  expires: new Date(
 //              Date.now() + 5*24*60*60*1000
 //          )
+
+
+// req.user = {...req.user,name,email,avatar}
+// req.user.save()  won't work on the above one,
+//-----------------------------------------------------------
+// but will work on the below ones because here we r not
+// converting the mongoose instance object to a normal object
+//-----------------------------------------------------------
+// req.user.name = name ? name : req.user.name
+// req.user.email = email ? email : req.user.email
+// req.user.avatar = avatar ? avatar : req.user.avatar
+
+
+
+// in the register user function you have sended
+// response as "email already exists", don't you
+// think that that can reverse your security
+// measure that you took when you set the response
+// "invalid credentials" inside the login controller
+// rather than telling which one is wrong b/w the
+// email and the password ?
