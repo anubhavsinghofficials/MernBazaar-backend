@@ -30,7 +30,7 @@ export const createProduct = async (req,res) => {
 
 
 
-// what about updating the price ????
+// what about updating the price/images/stock ????
 export const updateProduct = async (req,res) => {
     try {
         const {title, description, category} = req.body
@@ -253,6 +253,7 @@ export const getProductDetails = async (req,res) => {
                                         path:"seller",
                                         select:"name email avatar.url description joinedAt mernScore"
                                     })
+                                    // or populate("seller", "name email")
         if (!productDetails) {
             return res.status(400).json({error:"Product not found"})
         }

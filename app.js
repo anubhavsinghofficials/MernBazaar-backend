@@ -9,6 +9,7 @@ import productRouter from './routes/productRoutes.js'
 import userRouter from './routes/userRoutes.js'
 import sellerRouter from './routes/sellerRoutes.js'
 import adminRouter from './routes/adminRoutes.js'
+import orderRouter from './routes/orderRoutes.js'
 
 const PORT = process.env.PORT
 const app = express()
@@ -22,6 +23,7 @@ app.use("/api/v1",productRouter)
 app.use("/api/v1",userRouter)
 app.use("/api/v1",sellerRouter)
 app.use("/api/v1",adminRouter)
+app.use("/api/v1",orderRouter)
 
 
 
