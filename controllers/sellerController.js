@@ -321,7 +321,7 @@ export const getSellerData = async (req,res) => {
     }
 }
 
-
+// what aobut removing those products from cart ?
 export const deleteSeller = async (req,res) => {
     try {
         const deletedProducts = await Product.deleteMany({seller:req.params.id});

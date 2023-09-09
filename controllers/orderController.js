@@ -105,7 +105,8 @@ export const getAllOrders = async (req,res) => {
         if (!orders) {
             res.status(400).json({error:"no order found"})
         }
-
+        // why not delivereddOrders = total - pending - shipped
+        // and instead of countDocuments, just filter from AllOrders
         const totalOrders = await Order.countDocuments()
         const pendingOrders = await Order.countDocuments({orderStatus:"pending"})
         const shippedOrders = await Order.countDocuments({orderStatus:"shipped"})

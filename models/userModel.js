@@ -48,6 +48,11 @@ const userSchema = new mongoose.Schema({
         }
     },
 
+    joinedAt:{
+        type:Date,
+        default:Date.now
+    },
+
     blacklisted:{
         type:Boolean,
         default:false,
