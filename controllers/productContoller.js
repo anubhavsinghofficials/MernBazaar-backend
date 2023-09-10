@@ -214,10 +214,12 @@ export const getProducts = async (req,res) => {
         if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
+        console.log(keyword)
+        let filter = category ? {category}:{}
+        filter = (keyword && keyword !== "")
+                ? {...filter, autoTags:{$regex:keyword,$options:'i'}}
+                : {...filter}
 
-        let filter = keyword ? {autoTags:{$regex:keyword,$options:'i'}}:{}
-            filter = category ? {...filter, category}:{...filter}
-            
         if (price) {
             // this price is in the form of {gt:'0.1'}, but for mongoose
             // we should have {'$gt':0.1}, thats what we are doing here
@@ -234,10 +236,8 @@ export const getProducts = async (req,res) => {
                                       .skip((+pageNo - 1)*(+pageLength))
 
         const totalProducts = await Product.countDocuments(filter)
-        // console.log({keyword,filter,products})
-        console.log({keyword})
-        res.status(200).json({totalProducts,products})
 
+        res.status(200).json({totalProducts,products})
     } catch (error) {
         res.status(400).json({error:error.message})
     }
