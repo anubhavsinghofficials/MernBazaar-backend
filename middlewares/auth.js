@@ -35,7 +35,6 @@ export const userAuth = async (req,res,next) => {
 
 
 
-
 export const sellerAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
@@ -89,7 +88,6 @@ export const adminAuth = async (req,res,next) => {
 
 
 
-
 // this will help in getting user's review
 export const tempUserAuth = async (req,res,next) => {
     const token = req.cookies.jwt
@@ -97,9 +95,10 @@ export const tempUserAuth = async (req,res,next) => {
         try {
             const payload = await jwt.verify(token,process.env.JWT_KEY)
             const userFound = await User.findById(payload._id).select("+password")
-            if (userFound) {
-                req.user = userFound
+            if (!userFound) {
+                return res.status(400).json({error:"Login through user account to do this"})
             }
+            req.user = userFound
         }
         catch (error) {
             res.status(401).json({error:error.message})

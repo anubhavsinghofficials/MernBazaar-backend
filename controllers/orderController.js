@@ -47,7 +47,7 @@ export const getSingleOrder = async (req,res) => {
     }
 }
 
-
+// add !pageNo || !pageLength || at everywhere needed
 export const getAllUserOrders = async (req,res) => {
     try {
         // const foundOrders = await Order.find({user:req.user._id.toString()})
@@ -93,7 +93,7 @@ export const getAllOrders = async (req,res) => {
     try {
         const {pageNo, pageLength, orderStatus} = req.query
         
-        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+        if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
         if (!["delivered", "shipped", "pending"].includes(orderStatus)) {

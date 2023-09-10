@@ -8,3 +8,4 @@
 PORT=your_actual_port
 DB_URL=your_actual_database_url
 JWT_KEY=your_actual_jwt_key
+CLIENT=your_actual_Client_baseUrl

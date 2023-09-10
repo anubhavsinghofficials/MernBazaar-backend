@@ -62,7 +62,6 @@ export const updateProduct = async (req,res) => {
 
 
 
-
 export const deleteProduct = async (req,res) => {
     try {
         const product = await Product.findById(req.params.id)
@@ -177,7 +176,7 @@ export const getAllReviews = async (req,res) => {
     try {
         const {pageNo, pageLength} = req.query
 
-        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+        if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
 
@@ -212,8 +211,8 @@ export const getProducts = async (req,res) => {
     try {
         const {keyword,category,price,pageNo,pageLength} = req.query
 
-        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
-            res.status(400).json({error:"Invalid Page Length or Page Number"})
+        if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+            return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
 
         let filter = keyword ? {autoTags:{$regex:keyword,$options:'i'}}:{}
@@ -235,14 +234,14 @@ export const getProducts = async (req,res) => {
                                       .skip((+pageNo - 1)*(+pageLength))
 
         const totalProducts = await Product.countDocuments(filter)
-
+        // console.log({keyword,filter,products})
+        console.log({keyword})
         res.status(200).json({totalProducts,products})
 
     } catch (error) {
         res.status(400).json({error:error.message})
     }
 }
-
 
 
 
