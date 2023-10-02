@@ -7,7 +7,7 @@ import mongoose from 'mongoose'
 
 // Schema Creation ________________________________________
 const productSchema = new mongoose.Schema({
-
+    
     title:{
         type:String,
         required:[true,"Product Title is required"],
@@ -31,7 +31,7 @@ const productSchema = new mongoose.Schema({
         required:[true,"autoTags is required"],
         trim:true,
     },
-
+    
     price:{
         actual:{
             type:Number,
@@ -55,7 +55,7 @@ const productSchema = new mongoose.Schema({
         min: [0, 'Stock can not be negative'],
         default:1,
     },
-
+    
     images:{
         thumbnail:{
             public_id:{
@@ -85,7 +85,7 @@ const productSchema = new mongoose.Schema({
         type:Number,
         default:0
     },
-
+    
     overallRating:{
         type:Number,
         default:0

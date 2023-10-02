@@ -209,35 +209,53 @@ export const getAllReviews = async (req,res) => {
 
 export const getProducts = async (req,res) => {
     try {
-        const {keyword,category,price,pageNo,pageLength} = req.query
-
+        const { keyword, category, price, pageNo, pageLength,
+                discount, ratings, sort } = req.query
+        
         if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
-        console.log(keyword)
-        let filter = category ? {category}:{}
+        
+        let filter = (category && category !== "") ? {category}:{}
         filter = (keyword && keyword !== "")
                 ? {...filter, autoTags:{$regex:keyword,$options:'i'}}
                 : {...filter}
+
+        filter = discount ? {...filter, 'price.discount':{$gte:+discount}} : {...filter}
+        filter = ratings  ? {...filter, overallRating:{$gte:+ratings}} : {...filter}
+        
+        let sortCreteria = {overallRating:-1}
+        if (sort) {
+            const validSortFields = ['price', 'ratings', 'createdAt'];
+            const validSortOrders = ['-1', '1']
+            const [sortField, sortOrder] = sort.split('|');
+
+            if (!validSortFields.includes(sortField) || !validSortOrders.includes(sortOrder)) {
+                return res.status(400).json({ error: 'Invalid sort parameters' });
+            }
+            
+            sortCreteria = {[sortField]:+sortOrder}
+        }
 
         if (price) {
             // this price is in the form of {gt:'0.1'}, but for mongoose
             // we should have {'$gt':0.1}, thats what we are doing here
             const regex = /\b(gt|gte|lt|lte)\b/g
-            const netPriceString = JSON.stringify(price)
+            const priceRangeString = JSON.stringify(price)
                                        .replace(regex, key => `$${key}`)
-            const netPrice = JSON.parse(netPriceString)
-            Object.keys(netPrice).forEach(key => netPrice[key] = +netPrice[key])
-            filter = {...filter, "price.net":netPrice}
+            const priceRange = JSON.parse(priceRangeString)
+            Object.keys(priceRange).forEach(key => priceRange[key] = +priceRange[key])
+            filter = {...filter, "price.net":priceRange}
         }
 
-        const products = await Product.find(filter)
-                                      .limit(pageLength)
-                                      .skip((+pageNo - 1)*(+pageLength))
-
         const totalProducts = await Product.countDocuments(filter)
-
-        res.status(200).json({totalProducts,products})
+        const products = await Product.find(filter)
+                                      .select({overallRating:1,images:1,price:1,title:1})
+                                      .sort(sortCreteria)
+                                      .skip((+pageNo - 1)*(+pageLength))
+                                      .limit(pageLength)
+        
+        res.status(200).json({totalProducts, products})
     } catch (error) {
         res.status(400).json({error:error.message})
     }
