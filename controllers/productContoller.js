@@ -226,15 +226,19 @@ export const getProducts = async (req,res) => {
         
         let sortCreteria = {overallRating:-1}
         if (sort) {
-            const validSortFields = ['price', 'ratings', 'createdAt'];
+            const validSortFields = ['price', 'ratings', 'date'];
             const validSortOrders = ['-1', '1']
             const [sortField, sortOrder] = sort.split('|');
 
             if (!validSortFields.includes(sortField) || !validSortOrders.includes(sortOrder)) {
                 return res.status(400).json({ error: 'Invalid sort parameters' });
+            } else if (sortField === 'price') {
+                sortCreteria = {'price.net':+sortOrder}
+            } else if (sortField === 'ratings'){
+                sortCreteria = {'overallRating':+sortOrder}
+            } else if (sortField === 'date') {
+                sortCreteria = {'createdAt':+sortOrder}
             }
-            
-            sortCreteria = {[sortField]:+sortOrder}
         }
 
         if (price) {
