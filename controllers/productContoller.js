@@ -226,7 +226,7 @@ export const getProducts = async (req,res) => {
         
         let sortCreteria = {overallRating:-1}
         if (sort) {
-            const validSortFields = ['price', 'ratings', 'date'];
+            const validSortFields = ['price', 'ratings', 'date', 'discount'];
             const validSortOrders = ['-1', '1']
             const [sortField, sortOrder] = sort.split('|');
 
@@ -238,7 +238,9 @@ export const getProducts = async (req,res) => {
                 sortCreteria = {'overallRating':+sortOrder}
             } else if (sortField === 'date') {
                 sortCreteria = {'createdAt':+sortOrder}
-            }
+            } else if (sortField === 'discount') {
+                sortCreteria = {'price.discount':+sortOrder}
+            } 
         }
 
         if (price) {
