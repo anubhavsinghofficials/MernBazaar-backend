@@ -12,7 +12,7 @@ export const userAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
     if (!token) {
-        return res.status(400).json({error:"authorization failed, Login to your account"})
+        return res.status(400).json({error:"authorization failed, Login to your user account"})
     }
 
     try {
@@ -39,7 +39,7 @@ export const sellerAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
     if (!token) {
-        return res.status(400).json({error:"authorization failed, Login to your account"})
+        return res.status(400).json({error:"authorization failed, Login to your seller account"})
     }
 
     try {
@@ -66,7 +66,7 @@ export const adminAuth = async (req,res,next) => {
 
     const token = req.cookies.jwt
     if (!token) {
-        return res.status(400).json({error:"authorization failed, Login to your account"})
+        return res.status(400).json({error:"authorization failed, Login to your admin account"})
     }
 
     try {

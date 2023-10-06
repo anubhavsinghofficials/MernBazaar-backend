@@ -1,7 +1,7 @@
 
 
 import Product from '../models/productModel.js'
-
+import Seller from '../models/sellerModel.js'
 
 // ________________________________ SELLER ROUTES
 
@@ -101,6 +101,9 @@ export const reviewProduct = async (req,res) => {
             return res.status(400).json({error:"Product doesn't exists!!"})
         }
 
+        const sellerId = foundProduct.seller
+        const seller = await Seller.findById(sellerId)
+        
         const count = foundProduct.totalReviews
         const oldRating = foundProduct.overallRating
         const existingReview = foundProduct.reviews.find(rev => (
@@ -109,6 +112,11 @@ export const reviewProduct = async (req,res) => {
         const newRating = existingReview
                           ? (oldRating*count - existingReview.rating + (+userRating))/(count)
                           : (oldRating*count + (+userRating))/(count+1)
+        
+        const oldMernScore = seller.mernScore
+        const newMernScore = existingReview
+                             ? (oldMernScore*count - existingReview.rating + (+userRating))/count
+                             : (oldMernScore*count + (+userRating))/(count+1)
 
         if (existingReview) {
             existingReview.rating = +userRating
@@ -127,7 +135,9 @@ export const reviewProduct = async (req,res) => {
            foundProduct.reviews.push(newReview)
         }
 
-        foundProduct.save()
+        seller.mernScore = newMernScore
+        await seller.save()
+        await foundProduct.save()
         res.status(200).json({updatedProduct:foundProduct})
     }
     catch (error) {
