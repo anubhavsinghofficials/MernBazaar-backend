@@ -101,8 +101,10 @@ export const reviewProduct = async (req,res) => {
             return res.status(400).json({error:"Product doesn't exists!!"})
         }
 
-        const sellerId = foundProduct.seller
-        const seller = await Seller.findById(sellerId)
+        const seller = await Seller.findById(foundProduct.seller)
+        if (!seller) {
+            return res.status(400).json({error:"Product doesn't exists!!"})
+        }
         
         const count = foundProduct.totalReviews
         const oldRating = foundProduct.overallRating
@@ -138,7 +140,7 @@ export const reviewProduct = async (req,res) => {
         seller.mernScore = newMernScore
         await seller.save()
         await foundProduct.save()
-        res.status(200).json({updatedProduct:foundProduct})
+        res.status(200).json({message:"Your review added successfully"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -153,6 +155,12 @@ export const deleteReview = async (req,res) => {
         if (!foundProduct) {
             return res.status(400).json({error:"Product not found!!"})
         }
+        
+        const seller = await Seller.findById(foundProduct.seller)
+        if (!seller) {
+            return res.status(400).json({error:"Product doesn't exists!!"})
+        }
+        
 
         const existingReview = foundProduct.reviews.find(rev => (
             rev.user.toString() === req.user._id.toString()
@@ -168,11 +176,19 @@ export const deleteReview = async (req,res) => {
         const newRating = count !== 1
                           ? (oldRating*count - existingReview.rating)/(count-1)
                           : 0
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id,{
-                                        $inc:{totalReviews:-1},
-                                        $set:{overallRating:newRating},
-                                        $pull:{reviews:{user:existingReview.user.toString()}}  
-                                    })
+
+        const oldMernScore = seller.mernScore
+        const newMernScore = count !== 1
+                             ? (oldMernScore*count - existingReview.rating)/(count-1)
+                             : 0
+
+        seller.mernScore = newMernScore
+        await seller.save()
+        await Product.findByIdAndUpdate(req.params.id,{
+                        $inc:{totalReviews:-1},
+                        $set:{overallRating:newRating},
+                        $pull:{reviews:{user:existingReview.user.toString()}}  
+                    })
 
         res.status(200).json({message:"Your review removed successfully"})
     } catch (error) {
