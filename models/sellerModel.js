@@ -36,20 +36,15 @@ const sellerSchema = new mongoose.Schema({
         select:false
     },
 
-    avatar:{
-        public_id:{
-            type:String,
-            required:[true,"public_id can't be empty"],
-        },
-        url:{
-            type:String,
-            required:[true,"There must be an avatar"],
-        }
-    },
-
     description:{
         type:String,
         required:[true,"Seller description is required"],
+        trim:true,
+    },
+
+    address:{
+        type:String,
+        required:[true,"Seller address is required"],
         trim:true,
     },
 
@@ -58,7 +53,7 @@ const sellerSchema = new mongoose.Schema({
         default:Date.now
     },
 
-    mernScore:{
+    sellerScore:{
         type:Number,
         default:0,
         required:true

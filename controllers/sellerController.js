@@ -12,9 +12,9 @@ import bcrypt from 'bcryptjs'
 
 export const registerSeller = async (req,res) => {
 
-    const {name, email, password, description} = req.body
+    const {name, email, password, description, address} = req.body
 
-    if(!name || !email || !password || !description){
+    if(!name || !email || !password || !description || !address){
         return res.status(400).json({error:"please fill all the details"})
     }
 
@@ -42,10 +42,7 @@ export const registerSeller = async (req,res) => {
             email,
             password,
             description,
-            avatar:{
-                public_id:"sample_id",
-                url:"laskdfalskdjfa;sldfjalsdkfj"
-            }
+            address
         })
     
         const token = await seller.genAuthToken(res)

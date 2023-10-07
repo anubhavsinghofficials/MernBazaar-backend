@@ -115,10 +115,10 @@ export const reviewProduct = async (req,res) => {
                           ? (oldRating*count - existingReview.rating + (+userRating))/(count)
                           : (oldRating*count + (+userRating))/(count+1)
         
-        const oldMernScore = seller.mernScore
-        const newMernScore = existingReview
-                             ? (oldMernScore*count - existingReview.rating + (+userRating))/count
-                             : (oldMernScore*count + (+userRating))/(count+1)
+        const oldSellerScore = seller.sellerScore
+        const newSellerScore = existingReview
+                             ? (oldSellerScore*count - existingReview.rating + (+userRating))/count
+                             : (oldSellerScore*count + (+userRating))/(count+1)
 
         if (existingReview) {
             existingReview.rating = +userRating
@@ -137,7 +137,7 @@ export const reviewProduct = async (req,res) => {
            foundProduct.reviews.push(newReview)
         }
 
-        seller.mernScore = newMernScore
+        seller.sellerScore = newSellerScore
         await seller.save()
         await foundProduct.save()
         res.status(200).json({message:"Your review added successfully"})
@@ -177,12 +177,12 @@ export const deleteReview = async (req,res) => {
                           ? (oldRating*count - existingReview.rating)/(count-1)
                           : 0
 
-        const oldMernScore = seller.mernScore
-        const newMernScore = count !== 1
-                             ? (oldMernScore*count - existingReview.rating)/(count-1)
+        const oldSellerScore = seller.sellerScore
+        const newSellerScore = count !== 1
+                             ? (oldSellerScore*count - existingReview.rating)/(count-1)
                              : 0
 
-        seller.mernScore = newMernScore
+        seller.sellerScore = newSellerScore
         await seller.save()
         await Product.findByIdAndUpdate(req.params.id,{
                         $inc:{totalReviews:-1},
@@ -214,9 +214,13 @@ export const getAllReviews = async (req,res) => {
             currentUserReview = reviews.find(rev => (
                 rev.user.toString() === req.user._id.toString()
             ))
+            currentUserReview = currentUserReview ? currentUserReview : null
+            reviews = reviews.filter(rev => (
+                rev.user.toString() !== req.user._id.toString()
+            ))
         }
 
-        const totalReviews = reviews.length
+        const totalReviews = reviews.length + 1
         const start = (+pageNo-1)*(+pageLength)
         const end = (+pageNo)*(+pageLength)
         reviews = reviews.slice(start,end)
@@ -300,7 +304,7 @@ export const getProductDetails = async (req,res) => {
         const productDetails = await Product.findById(req.params.id)
                                     .populate({
                                         path:"seller",
-                                        select:"name email avatar.url description joinedAt mernScore"
+                                        select:"name email avatar.url description joinedAt sellerScore"
                                     })
                                     // or populate("seller", "name email")
         if (!productDetails) {
