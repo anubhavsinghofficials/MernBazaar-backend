@@ -65,12 +65,12 @@ export const getAllUserOrders = async (req,res) => {
 
 
 
-// _______________________________ ADMIN CONTROLLERS
+// _______________________________ SELLER CONTROLLERS
 
 
 
-// send different data as the func r same for both admin and duser
-export const getSingleOrderAdmin = async (req,res) => {
+// send different data as the func r same for user
+export const getSingleOrderSeller = async (req,res) => {
     try {
         const foundOrder = await Order.findById(req.params.id)
                                       .populate("user","name email")

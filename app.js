@@ -8,7 +8,6 @@ import cookieParser from 'cookie-parser'
 import productRouter from './routes/productRoutes.js'
 import userRouter from './routes/userRoutes.js'
 import sellerRouter from './routes/sellerRoutes.js'
-import adminRouter from './routes/adminRoutes.js'
 import orderRouter from './routes/orderRoutes.js'
 import cors from 'cors'
 
@@ -26,7 +25,6 @@ app.use(express.json())
 app.use("/api/v1",productRouter)
 app.use("/api/v1",userRouter)
 app.use("/api/v1",sellerRouter)
-app.use("/api/v1",adminRouter)
 app.use("/api/v1",orderRouter)
 
 

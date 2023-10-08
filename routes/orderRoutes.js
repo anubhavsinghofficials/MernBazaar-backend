@@ -1,9 +1,9 @@
 
 
 import {Router} from 'express'
-import { adminAuth, userAuth } from '../middlewares/auth.js'
+import { userAuth, sellerAuth } from '../middlewares/auth.js'
 import { newOrder, getAllUserOrders, getSingleOrder,
-        getSingleOrderAdmin, getAllOrders, updateOrderStatus,
+        getSingleOrderSeller, getAllOrders, updateOrderStatus,
         deleteOrder} from '../controllers/orderController.js'
 
 const orderRouter = Router()
@@ -15,11 +15,11 @@ orderRouter.route('/order/new').post(userAuth,newOrder)
 orderRouter.route('/order/:id').get(userAuth,getSingleOrder)
 orderRouter.route('/orders').get(userAuth,getAllUserOrders)
 
-// ADMIN ROUTES ___________________________________________
-orderRouter.route('/admin/order/:id').get(adminAuth,getSingleOrderAdmin)
-                                     .patch(adminAuth,updateOrderStatus)
-                                     .delete(adminAuth,deleteOrder)
-orderRouter.route('/admin/orders').get(adminAuth,getAllOrders)
+// Seller ROUTES ___________________________________________
+orderRouter.route('/seller/order/:id').get(sellerAuth,getSingleOrderSeller)
+                                     .patch(sellerAuth,updateOrderStatus)
+                                     .delete(sellerAuth,deleteOrder)
+orderRouter.route('/seller/orders').get(sellerAuth,getAllOrders)
 
 
 export default orderRouter

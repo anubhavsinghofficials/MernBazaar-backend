@@ -2,7 +2,6 @@
 
 import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
-import Admin from '../models/adminModel.js'
 import bcrypt from 'bcryptjs'
 
 
@@ -28,12 +27,6 @@ export const registerUser = async (req,res) => {
             const SellerFound = await Seller.findOne({email})
             if (SellerFound) {
                 return res.status(400).json({error:"Email already exists"})
-            }
-            else{
-                const AdminFound = await Admin.findOne({email})
-                if (AdminFound) {
-                    return res.status(400).json({error:"Email already exists"})
-                }
             }
         }
 
@@ -195,12 +188,7 @@ export const updateUserDetails = async (req,res) => {
                     return res.status(400).json({error:"Email already exists"})
                 }
                 else{
-                    const AdminFound = await Admin.findOne({email})
-                    if (AdminFound) {
-                        return res.status(400).json({error:"Email already exists"})
-                    }else{
-                        updates = {...updates,email}
-                    }
+                    updates = {...updates,email}
                 }
             }
         }
@@ -249,7 +237,7 @@ export const updateUserPassword = async (req,res) => {
 
 
 
-//_______________________________ ADMIN CONTROLLERS
+//_______________________________ SELLER CONTROLLERS
 
 export const getActiveUsers = async (req,res) => {
     try {
@@ -271,46 +259,6 @@ export const getActiveUsers = async (req,res) => {
     }
 }
 
-
-export const getBlackListedUsers = async (req,res) => {
-    try {
-        const {pageNo,pageLength} = req.query
-
-        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
-            res.status(400).json({error:"Invalid Page Length or Page Number"})
-        }
-
-        const userCount = await User.countDocuments({blacklisted:true})
-        const users = await User.find({blacklisted:true})
-                                .limit(pageLength)
-                                .skip((+pageNo-1)*(+pageLength))
-
-        res.status(200).json({userCount,users})
-    }
-    catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-
-export const toggleBlackListedUser = async (req,res) => {
-    try {
-        const FoundUser = await User.findById(req.params.id)
-        FoundUser.blacklisted = !FoundUser.blacklisted
-        await FoundUser.save()
-
-        if (FoundUser.blacklisted) {
-            return res.status(200).json({message:"User blacklisted"})
-        } else {
-            return res.status(200).json({message:"User account activated again!! "})
-        }
-    
-    } catch (error) {
-         res.status(400).json({error:error.message})
-    }
-}
-
-
 export const getUserData = async (req,res) => {
     try {
         const FoundUser = await User.findById(req.params.id)
@@ -319,17 +267,6 @@ export const getUserData = async (req,res) => {
         res.status(400).json({error:error.message})
     }
 }
-
-
-export const deleteUser = async (req,res) => {
-    try {
-        const deletedUser = await User.findByIdAndDelete(req.params.id)
-        res.status(200).json({deletedUser})
-    } catch (error) {
-         res.status(400).json({error:error.message})
-    }
-}
-
 
 
 

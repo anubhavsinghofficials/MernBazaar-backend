@@ -174,8 +174,8 @@ export const deleteReview = async (req,res) => {
         const count = foundProduct.totalReviews
         const oldRating = foundProduct.overallRating
         const newRating = count !== 1
-                          ? (oldRating*count - existingReview.rating)/(count-1)
-                          : 0
+                        ? (oldRating*count - existingReview.rating)/(count-1)
+                        : 0
 
         const oldSellerScore = seller.sellerScore
         const newSellerScore = count !== 1

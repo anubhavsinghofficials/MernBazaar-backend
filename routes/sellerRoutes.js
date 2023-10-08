@@ -1,11 +1,10 @@
 
 
-import {Router} from 'express'
-import { adminAuth, sellerAuth } from '../middlewares/auth.js'
-import {registerSeller,logInSeller,logOutSeller,logOutFromAllDevices,
-        getSellerDetails,updateSellerDetails,updateSellerPassword,
-        deleteSellerAccount,getActiveSellers,getBlackListedSellers,
-        deleteSeller,toggleBlackListedSeller,getSellerData} from '../controllers/sellerController.js'
+import { Router } from 'express'
+import { sellerAuth } from '../middlewares/auth.js'
+import { registerSeller,logInSeller,logOutSeller,logOutFromAllDevices,
+         getSellerDetails,updateSellerDetails,updateSellerPassword,
+         deleteSellerAccount } from '../controllers/sellerController.js'
 
 
 const sellerRouter = Router()
@@ -20,14 +19,6 @@ sellerRouter.route("/seller").get(sellerAuth,getSellerDetails)
                            .patch(sellerAuth,updateSellerDetails)
                            .delete(sellerAuth,deleteSellerAccount)
 sellerRouter.route("/seller/password").post(sellerAuth,updateSellerPassword)
-
-
-// Admin Routes __________________________________________
-sellerRouter.route("/admin/sellers").get(adminAuth,getActiveSellers)
-sellerRouter.route("/admin/sellers/blacklisted").get(adminAuth,getBlackListedSellers)
-sellerRouter.route("/admin/seller/:id").get(adminAuth,getSellerData)
-                                       .patch(adminAuth,toggleBlackListedSeller)
-                                       .delete(adminAuth,deleteSeller)
 
 
 export default sellerRouter

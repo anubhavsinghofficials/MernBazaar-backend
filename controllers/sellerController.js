@@ -2,7 +2,6 @@
 
 import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
-import Admin from '../models/adminModel.js'
 import Product from '../models/productModel.js'
 import bcrypt from 'bcryptjs'
 
@@ -28,12 +27,6 @@ export const registerSeller = async (req,res) => {
             const UserFound = await User.findOne({email})
             if (UserFound) {
                 return res.status(400).json({error:"Email already exists"})
-            }
-            else{
-                const AdminFound = await Admin.findOne({email})
-                if (AdminFound) {
-                    return res.status(400).json({error:"Email already exists"})
-                }
             }
         }
 
@@ -192,12 +185,7 @@ export const updateSellerDetails = async (req,res) => {
                     return res.status(400).json({error:"Email already exists"})
                 }
                 else{
-                    const AdminFound = await Admin.findOne({email})
-                    if (AdminFound) {
-                        return res.status(400).json({error:"Email already exists"})
-                    }else{
-                        updates = {...updates,email}
-                    }
+                    updates = {...updates,email}
                 }
             }
         }
@@ -240,91 +228,5 @@ export const updateSellerPassword = async (req,res) => {
     }
     catch (error) {
         res.status(400).json({error:error.message})
-    }
-}
-
-
-
-
-
-//_______________________________ ADMIN CONTROLLERS
-
-export const getActiveSellers = async (req,res) => {
-    try {
-        const {pageNo,pageLength} = req.query
-
-        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
-            res.status(400).json({error:"Invalid Page Length or Page Number"})
-        }
-
-        const sellerCount = await Seller.countDocuments({blacklisted:false})
-        const sellers = await Seller.find({blacklisted:false})
-                                .limit(pageLength)
-                                .skip((+pageNo-1)*(+pageLength))
-
-        res.status(200).json({sellerCount,sellers})
-    }
-    catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-
-export const getBlackListedSellers = async (req,res) => {
-    try {
-        const {pageNo,pageLength} = req.query
-
-        if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
-            res.status(400).json({error:"Invalid Page Length or Page Number"})
-        }
-
-        const sellerCount = await Seller.countDocuments({blacklisted:true})
-        const sellers = await Seller.find({blacklisted:true})
-                                .limit(pageLength)
-                                .skip((+pageNo-1)*(+pageLength))
-
-        res.status(200).json({sellerCount,sellers})
-    }
-    catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-
-export const toggleBlackListedSeller = async (req,res) => {
-    try {
-        const FoundSeller = await Seller.findById(req.params.id)
-        FoundSeller.blacklisted = !FoundSeller.blacklisted
-        await FoundSeller.save()
-
-        if (FoundSeller.blacklisted) {
-            return res.status(200).json({message:"Seller blacklisted"})
-        } else {
-            return res.status(200).json({message:"Seller account activated again!! "})
-        }
-    
-    } catch (error) {
-         res.status(400).json({error:error.message})
-    }
-}
-
-
-export const getSellerData = async (req,res) => {
-    try {
-        const FoundSeller = await Seller.findById(req.params.id)
-        res.status(200).json({seller:FoundSeller})
-    } catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-// what aobut removing those products from cart ?
-export const deleteSeller = async (req,res) => {
-    try {
-        const deletedProducts = await Product.deleteMany({seller:req.params.id});
-        const deletedSeller = await Seller.findByIdAndDelete(req.params.id)
-        res.status(200).json({deletedSeller,deletedProducts})
-    } catch (error) {
-         res.status(400).json({error:error.message})
     }
 }

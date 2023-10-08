@@ -2,7 +2,6 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/userModel.js'
 import Seller from '../models/sellerModel.js'
-import Admin from '../models/adminModel.js'
 
 
 
@@ -59,32 +58,6 @@ export const sellerAuth = async (req,res,next) => {
     }
 }
 
-
-
-
-export const adminAuth = async (req,res,next) => {
-
-    const token = req.cookies.jwt
-    if (!token) {
-        return res.status(400).json({error:"authorization failed, Login to your admin account"})
-    }
-
-    try {
-        const payload = await jwt.verify(token,process.env.JWT_KEY)
-        const adminFound = await Admin.findById(payload._id).select("+password")
-
-        if (!adminFound) {
-            return res.status(401).json({error:"You have to be an admin to do this"})
-        }
-
-        req.token = token
-        req.admin = adminFound
-        next()
-    }
-    catch (error) {
-         res.status(401).json({error:error.message})
-    }
-}
 
 
 
