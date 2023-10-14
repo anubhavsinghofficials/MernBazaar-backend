@@ -83,7 +83,31 @@ export const tempUserAuth = async (req,res,next) => {
 
 
 
+export const authRole = async (req,res) => {
 
+    const token = req.cookies.jwt
+    if (!token) {
+        return res.status(200).json({role:'public'})
+    }
+
+    try {
+        const payload = await jwt.verify(token,process.env.JWT_KEY)
+        const userFound = await User.findById(payload._id)
+        if (userFound) {
+            return res.status(200).json({role:'user'})
+        }
+        
+        const sellerFound = await Seller.findById(payload._id)
+        if (sellerFound) {
+            return res.status(200).json({role:'seller'})
+        }
+        
+        return res.status(200).json({role:'public'})
+    }
+    catch (error) {
+         res.status(401).json({error:error.message})
+    }
+}
 
 
 
