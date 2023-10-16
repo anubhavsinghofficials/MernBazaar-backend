@@ -6,8 +6,12 @@ import Seller from '../models/sellerModel.js'
 // ________________________________ SELLER ROUTES
 
 export const createProduct = async (req,res) => {
-
+    // remember to merge the thumbnail & additional
+    // images into a single (1+5) 6 length array
     const {price, title, description, category} = req.body
+    if (!price || !title || !description || !category) {
+        res.status(400).json({error:'Enter all the fields'})
+    }
 
     req.body.seller = req.seller._id
     // or seller = req.seller._id
@@ -16,9 +20,7 @@ export const createProduct = async (req,res) => {
     const net = price.actual*(1 - price.discount/100)
     const updatedPrice = {...price, net}
 
-    const autoTags = `${title} ${description} ${category}`
-
-    const product = new Product({...req.body,price:updatedPrice, autoTags})
+    const product = new Product({...req.body,price:updatedPrice})
 
     try {
         const createdProduct = await product.save()
@@ -33,9 +35,8 @@ export const createProduct = async (req,res) => {
 // what about updating the price/images/stock ????
 export const updateProduct = async (req,res) => {
     try {
-        const {title, description, category} = req.body
+        // const {title, description, category} = req.body
         const product = await Product.findById(req.params.id)
-
         if (!product) {
             return res.status(400).json({error:"product not found"})
         }
@@ -45,14 +46,8 @@ export const updateProduct = async (req,res) => {
             return res.status(400).json({error:"You can only update your own products"})
         }   // is this even needed ?
 
-        let autoTags = product.autoTags
-
-        autoTags = title ? autoTags.replace(product.title, title) : autoTags
-        autoTags = description ? autoTags.replace(product.description, description) : autoTags
-        autoTags = category ? autoTags.replace(product.category, category) : autoTags
-
         // see bottom comments
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id,{...req.body,autoTags},{ new:true, runValidators:true })
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id,{...req.body},{ new:true, runValidators:true })
         res.status(200).json({updatedProduct})
     }
     catch (error) {
@@ -201,31 +196,35 @@ export const deleteReview = async (req,res) => {
 export const getAllReviews = async (req,res) => {
     try {
         const {pageNo, pageLength} = req.query
+        const productId = req.params.id
+        if (!productId) {
+            res.status(400).json({error:'Invalid product id, product not found!'})
+        }
 
         if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
 
-        const foundProduct = await Product.findById(req.params.id)
-        let reviews = foundProduct.reviews
+        const foundProduct = await Product.findById(productId)
+        let allReviews = foundProduct.reviews
         let currentUserReview = null
 
         if (req.user) {
-            currentUserReview = reviews.find(rev => (
+            currentUserReview = allReviews.find(rev => (
                 rev.user.toString() === req.user._id.toString()
             ))
             currentUserReview = currentUserReview ? currentUserReview : null
-            reviews = reviews.filter(rev => (
+            allReviews = allReviews.filter(rev => (
                 rev.user.toString() !== req.user._id.toString()
             ))
         }
 
-        const totalReviews = reviews.length + 1
+        const totalReviews = allReviews.length + 1
         const start = (+pageNo-1)*(+pageLength)
         const end = (+pageNo)*(+pageLength)
-        reviews = reviews.slice(start,end)
+        allReviews = allReviews.slice(start,end)
 
-        res.status(200).json({currentUserReview,totalReviews,reviews})
+        res.status(200).json({currentUserReview,totalReviews,allReviews})
     } catch (error) {
         res.status(400).json({error:error.message})
     }
@@ -248,12 +247,16 @@ export const getProducts = async (req,res) => {
         
         let filter = (category && category !== "") ? {category}:{}
         filter = (keyword && keyword !== "")
-                ? {...filter, autoTags:{$regex:keyword,$options:'i'}}
+                ? {...filter, $or: [
+                    {title:{$regex:keyword,$options:'i'}},
+                    {description:{$regex:keyword,$options:'i'}},
+                    {category:{$regex:keyword,$options:'i'}},
+                ]}
                 : {...filter}
 
         filter = discount ? {...filter, 'price.discount':{$gte:+discount}} : {...filter}
         filter = ratings  ? {...filter, overallRating:{$gte:+ratings}} : {...filter}
-        
+
         let sortCreteria = {overallRating:-1}
         if (sort) {
             const validSortFields = ['price', 'ratings', 'date', 'discount'];
@@ -301,16 +304,20 @@ export const getProducts = async (req,res) => {
 
 export const getProductDetails = async (req,res) => {
     try {
-        const productDetails = await Product.findById(req.params.id)
-                                    .populate({
-                                        path:"seller",
-                                        select:"name email avatar.url description joinedAt sellerScore"
-                                    })
-                                    // or populate("seller", "name email")
-        if (!productDetails) {
-            return res.status(400).json({error:"Product not found"})
+        const productId = req.params.id
+        if (!productId) {
+            res.status(400).json({error:'Invalid product id, product not found!'})
         }
-
+        const productDetails = await Product.findById(productId)
+                                    .populate({
+                                        path:'seller',
+                                        select:'name email address description joinedAt sellerScore'
+                                        // or populate("seller", "name email")
+                                    })
+                                    .select('category description images overallRating price seller stock title')
+        if (!productDetails) {
+            return res.status(400).json({error:'Product not found'})
+        }
         res.status(200).json({productDetails})
     }
     catch (error) {

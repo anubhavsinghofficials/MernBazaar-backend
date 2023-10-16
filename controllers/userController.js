@@ -33,11 +33,7 @@ export const registerUser = async (req,res) => {
         const user = new User({
             name,
             email,
-            password,
-            avatar:{
-                public_id:"sample_id",
-                url:"laskdfalskdjfa;sldfjalsdkfj"
-            }
+            password
         })
         
         const token = await user.genAuthToken(res)

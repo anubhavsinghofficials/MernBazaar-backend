@@ -15,9 +15,14 @@ const productSchema = new mongoose.Schema({
     },
     
     description:{
-        type:String,
+        type:[String],
         required:[true,"Product description is required"],
-        trim:true,
+        validate: {
+            validator: array => {
+              return array.length > 0 && array.every(str => str.trim() !== '');
+            },
+            message: "At least one description is required.",
+        },
     },
 
     category:{
@@ -26,12 +31,6 @@ const productSchema = new mongoose.Schema({
         trim:true,
     },
 
-    autoTags:{
-        type:String,
-        required:[true,"autoTags is required"],
-        trim:true,
-    },
-    
     price:{
         actual:{
             type:Number,
@@ -126,6 +125,11 @@ const productSchema = new mongoose.Schema({
 
 })
 
+
+productSchema.pre('save', function (next) {
+    this.description = this.description.map(str => str.trim())
+    next()
+});
 
 // Model Export __________________________________________
 const Product = mongoose.model("product",productSchema)

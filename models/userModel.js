@@ -35,18 +35,6 @@ const userSchema = new mongoose.Schema({
         minLength:[6,"Password must atleast be of 6 characters"],
         select:false
     },
-    
-    avatar:{
-        public_id:{
-            type:String,
-            required:[true,"public_id can't be empty"],
-        },
-        url:{
-            type:String,
-            required:[true,"There must be an avatar"],
-            // default random image ???????
-        }
-    },
 
     joinedAt:{
         type:Date,

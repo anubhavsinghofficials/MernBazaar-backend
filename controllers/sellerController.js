@@ -190,8 +190,8 @@ export const updateSellerDetails = async (req,res) => {
             }
         }
 
-        const updatedUser = await Seller.findByIdAndUpdate(req.seller._id, updates, { new:true, runValidators:true })
-        res.status(201).json(updatedUser)
+        const updatedSeller = await Seller.findByIdAndUpdate(req.seller._id, updates, { new:true, runValidators:true })
+        res.status(201).json(updatedSeller)
     }
     catch (error) {
         res.status(201).json({error:error.message})
