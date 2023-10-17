@@ -151,7 +151,11 @@ export const getUserDetails = async (req,res) => {
         const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
         return res.status(400).json({error})
     }
-    res.status(200).json(req.user)
+    const user = {
+        name:req.user.name,
+        email:req.user.email
+    }
+    res.status(200).json({user})
     // or send only relevant data by either
     // extracting it from the req.user or
     // findById(req.user._id) 
@@ -206,27 +210,28 @@ export const updateUserPassword = async (req,res) => {
         return res.status(400).json({error})
     }
 
-    const {oldPassword, newPassword} = req.body
-    if (!oldPassword || !newPassword) {
+    const {currentPassword, newPassword} = req.body
+    if (!currentPassword || !newPassword) {
         return res.status(400).json({error:"Kindly fill all the fields"})
     }
 
-    const matched = await bcrypt.compare(oldPassword,req.user.password)
+    const matched = await bcrypt.compare(currentPassword,req.user.password)
 
     if (!matched) {
-        return res.status(400).json({error:"the old password didn't matched"})
+        return res.status(400).json({error:"Incorrect current password"})
     }
-    else if(oldPassword === newPassword){
+    else if(currentPassword === newPassword){
         return res.status(400).json({error:"Enter a different new password"})
     }
 
     try {
         req.user.password = newPassword
         await req.user.save()
-        res.status(201).json(req.user)
+        res.status(201).json({message:"Password successfully changed"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
+        console.log('error')
     }
 }
 

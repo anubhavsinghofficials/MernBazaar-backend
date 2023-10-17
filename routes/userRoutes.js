@@ -18,7 +18,7 @@ userRouter.route("/user/logoutall").get(userAuth,logOutFromAllDevices)
 userRouter.route("/user").get(userAuth,getUserDetails)
                          .patch(userAuth,updateUserDetails)
                          .delete(userAuth,deleteUserAccount)
-userRouter.route("/user/password").post(userAuth,updateUserPassword)
+userRouter.route("/user/password").patch(userAuth,updateUserPassword)
 
 
 // Seller Routes _________________________________________
