@@ -17,7 +17,7 @@ sellerRouter.route("/seller/logout").post(sellerAuth,logOutSeller)
 sellerRouter.route("/seller/logoutall").post(sellerAuth,logOutFromAllDevices)
 sellerRouter.route("/seller").get(sellerAuth,getSellerDetails)
                              .patch(sellerAuth,updateSellerDetails)
-sellerRouter.route("/seller/password").post(sellerAuth,updateSellerPassword)
+sellerRouter.route("/seller/password").patch(sellerAuth,updateSellerPassword)
 
 
 export default sellerRouter

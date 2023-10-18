@@ -38,7 +38,7 @@ export const updateProduct = async (req,res) => {
         // const {title, description, category} = req.body
         const product = await Product.findById(req.params.id)
         if (!product) {
-            return res.status(400).json({error:"product not found"})
+            return res.status(400).json({error:"Product not found"})
         }
 
         // see comments at bottom to see why we used toString()
@@ -62,7 +62,7 @@ export const deleteProduct = async (req,res) => {
         const product = await Product.findById(req.params.id)
 
         if (!product) {
-            return res.status(400).json({error:"product not found"})
+            return res.status(400).json({error:"Product not found"})
         }
         if (product.seller.toString() !== req.seller._id.toString()) {
             return res.status(400).json({error:"You can only delete your own products"})
@@ -88,17 +88,17 @@ export const reviewProduct = async (req,res) => {
         const {id} = req.params
 
         if (!id || !userRating || !userComment) {
-            return res.status(400).json({error:"please fill all the details"})
+            return res.status(400).json({error:"Kindly fill all the details"})
         }
 
         const foundProduct = await Product.findById(id)
         if (!foundProduct) {
-            return res.status(400).json({error:"Product doesn't exists!!"})
+            return res.status(400).json({error:"Product doesn't exists"})
         }
 
         const seller = await Seller.findById(foundProduct.seller)
         if (!seller) {
-            return res.status(400).json({error:"Product doesn't exists!!"})
+            return res.status(400).json({error:"Product doesn't exists"})
         }
         
         const count = foundProduct.totalReviews
@@ -148,12 +148,12 @@ export const deleteReview = async (req,res) => {
     try {
         const foundProduct = await Product.findById(req.params.id)
         if (!foundProduct) {
-            return res.status(400).json({error:"Product not found!!"})
+            return res.status(400).json({error:"Product not found"})
         }
         
         const seller = await Seller.findById(foundProduct.seller)
         if (!seller) {
-            return res.status(400).json({error:"Product doesn't exists!!"})
+            return res.status(400).json({error:"Product doesn't exists"})
         }
         
 
@@ -245,17 +245,18 @@ export const getProducts = async (req,res) => {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
         
-        let filter = (category && category !== "") ? {category}:{}
+        let filter = {stock:{$gt:0}}
+        filter = (category && category !== "") ? {...filter,category}: filter
         filter = (keyword && keyword !== "")
                 ? {...filter, $or: [
                     {title:{$regex:keyword,$options:'i'}},
                     {description:{$regex:keyword,$options:'i'}},
                     {category:{$regex:keyword,$options:'i'}},
                 ]}
-                : {...filter}
+                : filter
 
-        filter = discount ? {...filter, 'price.discount':{$gte:+discount}} : {...filter}
-        filter = ratings  ? {...filter, overallRating:{$gte:+ratings}} : {...filter}
+        filter = discount ? {...filter, 'price.discount':{$gte:+discount}} : filter
+        filter = ratings  ? {...filter, overallRating:{$gte:+ratings}} : filter
 
         let sortCreteria = {overallRating:-1}
         if (sort) {
@@ -289,11 +290,11 @@ export const getProducts = async (req,res) => {
 
         const totalProducts = await Product.countDocuments(filter)
         const products = await Product.find(filter)
-                                      .select({overallRating:1,images:1,price:1,title:1})
+                                      .select({overallRating:1,images:1,price:1,title:1,stock:1})
                                       .sort(sortCreteria)
                                       .skip((+pageNo - 1)*(+pageLength))
                                       .limit(pageLength)
-        
+                                      
         res.status(200).json({totalProducts, products})
     } catch (error) {
         res.status(400).json({error:error.message})

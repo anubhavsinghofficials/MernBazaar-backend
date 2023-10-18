@@ -10,7 +10,7 @@ export const newOrder = async (req,res) => {
     const {shippingInfo, orderItems, paymentInfo, totalPrice} = req.body
 
     if (!shippingInfo || !orderItems || !paymentInfo || !totalPrice) {
-        return res.status(400).json({error:"please fill all the details"})
+        return res.status(400).json({error:"Kindly fill all the details"})
     }
 
     const order = new Order({
@@ -139,7 +139,7 @@ export const updateOrderStatus = async (req,res) => {
             return res.status(400).json({error:"order not found"})
         }
         else if (order.orderStatus === 'delivered') {
-            return res.status(400).json({error:"Product is already delieverd!!"})
+            return res.status(400).json({error:"Product is already delieverd"})
         }
 
         // updating the product stocks

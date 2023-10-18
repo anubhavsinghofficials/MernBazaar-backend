@@ -13,7 +13,7 @@ export const registerSeller = async (req,res) => {
     const {name, email, password, description, address} = req.body
 
     if(!name || !email || !password || !description || !address){
-        return res.status(400).json({error:"please fill all the details"})
+        return res.status(400).json({error:"Kindly fill all the details"})
     }
 
     try {
@@ -46,7 +46,7 @@ export const registerSeller = async (req,res) => {
                     Date.now() + 10*24*60*60*1000
                 )}
         res.cookie("jwt",token, cookieOptions)
-        res.status(201).json({message:'Account created successfully!!'})
+        res.status(201).json({message:'Account created successfully'})
     }
     catch (error) {
         res.status(201).json({error:error.message})
@@ -59,13 +59,13 @@ export const logInSeller = async (req,res) => {
 
     const {email, password} = req.body
     if(!email || !password){
-        return res.status(400).json({error:"please fill all the details"})
+        return res.status(400).json({error:"Kindly fill all the details"})
     }
 
     try {
         const FoundSeller = await Seller.findOne({email}).select("+password")
         if (!FoundSeller) {
-            return res.status(400).json({error:"Seller not found!!"})
+            return res.status(400).json({error:"Seller not found"})
         }
         else if (FoundSeller.blacklisted){
             const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
@@ -74,7 +74,7 @@ export const logInSeller = async (req,res) => {
 
         const matched = await bcrypt.compare(password,FoundSeller.password)
         if (!matched) {
-            return res.status(401).json({error:"invalid Credentials"})
+            return res.status(401).json({error:"Invalid Credentials"})
         }
 
         const token = await FoundSeller.genAuthToken(res)
@@ -87,7 +87,7 @@ export const logInSeller = async (req,res) => {
                     )}
     
         res.cookie("jwt",token, cookieOptions)
-        res.status(200).json({message:'Login successfull!!'})   
+        res.status(200).json({message:'Login successful'})   
     
     } catch (error) {
          res.status(400).json({error:error.message})
@@ -102,7 +102,7 @@ export const logOutSeller = async (req,res) => {
         req.seller.tokens = req.seller.tokens.filter(ele => ele.token !== req.token)
         await req.seller.save({ validateBeforeSave: false })
     
-        res.status(200).json({message:"logout successful!!"})
+        res.status(200).json({message:"logout successful"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -118,7 +118,7 @@ export const logOutFromAllDevices = async (req,res) => {
         req.seller.tokens = []
         await req.seller.save({ validateBeforeSave: false })
     
-        res.status(200).json({message:"logged out from all the devices!!"})
+        res.status(200).json({message:"log out from all the devices successful"})
     }
     catch (error) {
         res.status(400).json({error:error.message})

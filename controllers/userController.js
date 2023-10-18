@@ -13,7 +13,7 @@ export const registerUser = async (req,res) => {
     const {name, email, password} = req.body
 
     if(!name || !email || !password){
-       return res.status(400).json({error:"please fill all the details"})
+       return res.status(400).json({error:"Kindly fill all the details"})
     }
 
     try {
@@ -44,7 +44,7 @@ export const registerUser = async (req,res) => {
                     Date.now() + 10*24*60*60*1000
                 )}
         res.cookie("jwt",token, cookieOptions)
-        res.status(201).json({message:'Account created successfully!!'})
+        res.status(201).json({message:'Account created successfully'})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -57,13 +57,13 @@ export const logInUser = async (req,res) => {
 
     const {email, password} = req.body
     if(!email || !password){
-        return res.status(400).json({error:"please fill all the details"})
+        return res.status(400).json({error:"Kindly fill all the details"})
     }
 
     try {
         const FoundUser = await User.findOne({email}).select("+password")
         if (!FoundUser) {
-            return res.status(400).json({error:"User not found!!"})
+            return res.status(400).json({error:"User not found"})
         }
         else if (FoundUser.blacklisted){
             const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
@@ -72,7 +72,7 @@ export const logInUser = async (req,res) => {
 
         const matched = await bcrypt.compare(password,FoundUser.password)
         if (!matched) {
-            return res.status(401).json({error:"invalid Credentials"})
+            return res.status(401).json({error:"Invalid Credentials"})
         }
 
         const token = await FoundUser.genAuthToken(res)
@@ -85,7 +85,7 @@ export const logInUser = async (req,res) => {
                     )} // see bottom comments
                             
         res.cookie("jwt",token, cookieOptions)
-        res.status(200).json({message:'Login successfull!!'})
+        res.status(200).json({message:'Login successful'})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -100,7 +100,7 @@ export const logOutUser = async (req,res) => {
         req.user.tokens = req.user.tokens.filter(ele => ele.token !== req.token)
         await req.user.save({ validateBeforeSave: false })
 
-        res.status(200).json({message:"logout successfull!!"})
+        res.status(200).json({message:"logout successful"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -116,7 +116,7 @@ export const logOutFromAllDevices = async (req,res) => {
         req.user.tokens = []
         await req.user.save({ validateBeforeSave: false })
     
-        res.status(200).json({message:"logged out from all the devices successfull!!"})
+        res.status(200).json({message:"log out from all the devices successful"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -276,6 +276,6 @@ export const getUserData = async (req,res) => {
 // response as "email already exists", don't you
 // think that that can reverse your security
 // measure that you took when you set the response
-// "invalid credentials" inside the login controller
+// "Invalid Credentials" inside the login controller
 // rather than telling which one is wrong b/w the
 // email and the password ?
