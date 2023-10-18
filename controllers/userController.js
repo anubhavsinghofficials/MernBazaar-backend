@@ -6,7 +6,6 @@ import bcrypt from 'bcryptjs'
 
 
 
-
 //________________________________ USER CONTROLLERS
 
 export const registerUser = async (req,res) => {
@@ -45,7 +44,7 @@ export const registerUser = async (req,res) => {
                     Date.now() + 10*24*60*60*1000
                 )}
         res.cookie("jwt",token, cookieOptions)
-        res.status(201).json({token,user})
+        res.status(201).json({message:'Account created successfully!!'})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -57,7 +56,6 @@ export const registerUser = async (req,res) => {
 export const logInUser = async (req,res) => {
 
     const {email, password} = req.body
-
     if(!email || !password){
         return res.status(400).json({error:"please fill all the details"})
     }
@@ -87,7 +85,7 @@ export const logInUser = async (req,res) => {
                     )} // see bottom comments
                             
         res.cookie("jwt",token, cookieOptions)
-        res.status(200).json({token,FoundUser})
+        res.status(200).json({message:'Login successfull!!'})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -99,11 +97,10 @@ export const logInUser = async (req,res) => {
 export const logOutUser = async (req,res) => {
     try {
         res.clearCookie("jwt")
-
         req.user.tokens = req.user.tokens.filter(ele => ele.token !== req.token)
         await req.user.save({ validateBeforeSave: false })
 
-        res.status(200).json({message:"logout successful!!"})
+        res.status(200).json({message:"logout successfull!!"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -116,30 +113,12 @@ export const logOutUser = async (req,res) => {
 export const logOutFromAllDevices = async (req,res) => {
     try {
         res.clearCookie("jwt")
-
         req.user.tokens = []
         await req.user.save({ validateBeforeSave: false })
     
-        res.status(200).json({message:"logged out from all the devices!!"})
+        res.status(200).json({message:"logged out from all the devices successfull!!"})
     }
     catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-
-
-export const deleteUserAccount = async (req,res) => {
-    try {
-        if (req.user.blacklisted){
-            const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-            return  res.status(400).json({error})
-        }
-
-        const deletedUser = await User.findByIdAndDelete(req.user._id)
-        res.status(200).json({deletedUser})
-
-    } catch (error) {
         res.status(400).json({error:error.message})
     }
 }
@@ -170,14 +149,13 @@ export const updateUserDetails = async (req,res) => {
         return res.status(400).json({error})
     }
 
-    const {name, email, avatar} = req.body
+    const {name, email} = req.body
 
     let updates = {}
     updates = name ? {...updates,name} : {...updates,name:req.user.name}
-    updates = avatar ? {...updates,avatar} : {...updates,avatar:req.user.avatar}
     
     try {
-        if (email) {
+        if (email && email !== req.user.email) {
             const UserFound = await User.findOne({email})
             if (UserFound) {
                 return res.status(400).json({error:"Email already exists"})
@@ -231,7 +209,6 @@ export const updateUserPassword = async (req,res) => {
     }
     catch (error) {
         res.status(400).json({error:error.message})
-        console.log('error')
     }
 }
 

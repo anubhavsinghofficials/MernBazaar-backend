@@ -2,7 +2,6 @@
 
 import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
-import Product from '../models/productModel.js'
 import bcrypt from 'bcryptjs'
 
 
@@ -47,7 +46,7 @@ export const registerSeller = async (req,res) => {
                     Date.now() + 10*24*60*60*1000
                 )}
         res.cookie("jwt",token, cookieOptions)
-        res.status(201).json({token,seller})
+        res.status(201).json({message:'Account created successfully!!'})
     }
     catch (error) {
         res.status(201).json({error:error.message})
@@ -61,13 +60,14 @@ export const logInSeller = async (req,res) => {
     const {email, password} = req.body
     if(!email || !password){
         return res.status(400).json({error:"please fill all the details"})
-     }
+    }
+
     try {
         const FoundSeller = await Seller.findOne({email}).select("+password")
-    
         if (!FoundSeller) {
             return res.status(400).json({error:"Seller not found!!"})
-        } else if (FoundSeller.blacklisted){
+        }
+        else if (FoundSeller.blacklisted){
             const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
             return res.status(400).json({error})
         }
@@ -84,10 +84,10 @@ export const logInSeller = async (req,res) => {
                     httpOnly: true,
                     expires: new Date(
                                 Date.now() + 10*24*60*60*1000
-                    )} // see bottom comments
+                    )}
     
         res.cookie("jwt",token, cookieOptions)
-        res.status(200).json({token,FoundSeller})   
+        res.status(200).json({message:'Login successfull!!'})   
     
     } catch (error) {
          res.status(400).json({error:error.message})
@@ -99,7 +99,6 @@ export const logInSeller = async (req,res) => {
 export const logOutSeller = async (req,res) => {
     try {
         res.clearCookie("jwt")
-
         req.seller.tokens = req.seller.tokens.filter(ele => ele.token !== req.token)
         await req.seller.save({ validateBeforeSave: false })
     
@@ -116,7 +115,6 @@ export const logOutSeller = async (req,res) => {
 export const logOutFromAllDevices = async (req,res) => {
     try {
         res.clearCookie("jwt")
-
         req.seller.tokens = []
         await req.seller.save({ validateBeforeSave: false })
     
@@ -130,31 +128,21 @@ export const logOutFromAllDevices = async (req,res) => {
 
 
 
-export const deleteSellerAccount = async (req,res) => {
-    try {        
-        if (req.seller.blacklisted){
-            const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-            return res.status(400).json({error})
-        }
-
-        const deletedProducts = await Product.deleteMany({seller:req.seller._id });
-        const deletedSeller = await Seller.findByIdAndDelete(req.seller._id)
-        res.status(200).json({deletedSeller,deletedProducts})
-    
-    } catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-
-
 export const getSellerDetails = async (req,res) => {
     if (req.seller.blacklisted){
         const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
         return res.status(400).json({error})
     }
-    res.status(200).json(req.seller)
-    // or send only relevant data !!
+    const seller = {
+        name:req.seller.name,
+        email:req.seller.email,
+        address:req.seller.address,
+        description:req.seller.description
+    }
+    res.status(200).json({seller})
+    // or send only relevant data by either
+    // extracting it from the req.user or
+    // findById(req.user._id) 
 }
 
 
@@ -166,15 +154,15 @@ export const updateSellerDetails = async (req,res) => {
         return res.status(400).json({error})
     }
 
-    const {name, email, description, avatar} = req.body
+    const {name, email, description, address} = req.body
     
     let updates = {}
     updates = name ? {...updates,name} : {...updates,name:req.seller.name}
-    updates = avatar ? {...updates,avatar} : {...updates,avatar:req.seller.avatar}
+    updates = address ? {...updates,address} : {...updates,address:req.seller.address}
     updates = description ? {...updates,description} : {...updates,description:req.seller.description}
 
     try {
-        if (email) {
+        if (email && email !== req.seller.email) {
             const SellerFound = await Seller.findOne({email})
             if (SellerFound) {
                 return res.status(400).json({error:"Email already exists"})
@@ -207,24 +195,24 @@ export const updateSellerPassword = async (req,res) => {
         return res.status(400).json({error})
     }
 
-    const {oldPassword, newPassword} = req.body
-    if (!oldPassword || !newPassword) {
+    const {currentPassword, newPassword} = req.body
+    if (!currentPassword || !newPassword) {
         return res.status(400).json({error:"Kindly fill all the fields"})
     }
 
-    const matched = await bcrypt.compare(oldPassword,req.seller.password)
+    const matched = await bcrypt.compare(currentPassword,req.seller.password)
 
     if (!matched) {
-        return res.status(400).json({error:"the old password didn't matched"})
+        return res.status(400).json({error:"Incorrect current password"})
     }
-    else if(oldPassword === newPassword){
+    else if(currentPassword === newPassword){
         return res.status(400).json({error:"Enter a different new password"})
     }
 
     try {
         req.seller.password = newPassword
         await req.seller.save()
-        res.status(201).json(req.seller)
+        res.status(201).json({message:"Password successfully changed"})
     }
     catch (error) {
         res.status(400).json({error:error.message})

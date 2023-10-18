@@ -3,8 +3,8 @@
 import { Router } from 'express'
 import { sellerAuth, userAuth } from '../middlewares/auth.js'
 import { registerUser,logInUser,logOutUser,logOutFromAllDevices,
-         deleteUserAccount,getUserDetails,updateUserDetails,
-         updateUserPassword,getActiveUsers,getUserData } from '../controllers/userController.js'
+         getUserDetails,updateUserDetails,updateUserPassword,
+         getActiveUsers,getUserData } from '../controllers/userController.js'
         
 
 const userRouter = Router()
@@ -13,11 +13,10 @@ const userRouter = Router()
 // User Routes __________________________________________
 userRouter.route("/user/register").post(registerUser)
 userRouter.route("/user/login").post(logInUser)
-userRouter.route("/user/logout").get(userAuth,logOutUser)
-userRouter.route("/user/logoutall").get(userAuth,logOutFromAllDevices)
+userRouter.route("/user/logout").post(userAuth,logOutUser)
+userRouter.route("/user/logoutall").post(userAuth,logOutFromAllDevices)
 userRouter.route("/user").get(userAuth,getUserDetails)
                          .patch(userAuth,updateUserDetails)
-                         .delete(userAuth,deleteUserAccount)
 userRouter.route("/user/password").patch(userAuth,updateUserPassword)
 
 
