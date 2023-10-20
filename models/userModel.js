@@ -27,6 +27,35 @@ const userSchema = new mongoose.Schema({
         trim:true,
     },
 
+    shippingInfo:[
+        {
+            address:{
+                type:String,
+                required:true
+            },
+            city:{
+                type:String,
+                required:true
+            },
+            state:{
+                type:String,
+                required:true
+            },
+            country:{
+                type:String,
+                required:true
+            },
+            pinCode:{
+                type:Number,
+                required:true
+            },
+            phoneNo:{
+                type:String,
+                required:true
+            }
+        },
+    ],
+
     password:{
         type:String,
         required: [true,"Password is required"],
