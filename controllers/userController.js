@@ -214,6 +214,33 @@ export const updateUserPassword = async (req,res) => {
 
 
 
+export const getShippingInfo = async (req,res) => {
+    try {
+        const aggregation = await User.aggregate([
+            {
+                $match:{
+                    _id:req.user._id,
+                    shippingInfo:{$exists:true}
+                }
+            },
+            {
+                $project:{
+                    shippingInfo: 1,
+                    _id:0
+                }
+            },
+        ])
+        
+        const shippingInfo = aggregation.length>0
+                             ? aggregation[0].shippingInfo
+                             : []
+        res.status(200).json({shippingInfo})
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
 
 //_______________________________ SELLER CONTROLLERS
 
