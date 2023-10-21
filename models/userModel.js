@@ -49,11 +49,42 @@ const userSchema = new mongoose.Schema({
                 type:Number,
                 required:true
             },
-            phoneNo:{
+            phone:{
                 type:String,
                 required:true
             }
         },
+    ],
+
+    cart:[
+        {
+            name:{
+                type:String,
+                required:true
+            },     
+            price:{
+                type:Number,
+                required:true
+            },
+            quantity:{
+                type:Number,
+                required:true
+            }, 
+            image:{
+                type:String,
+                required:true
+            },
+            product:{
+                type:mongoose.Schema.ObjectId,
+                ref:"product",
+                required:true
+            },
+            stock:{
+                type:Number,
+                min: [1, 'Stock can not be less than or equal to 0'],
+                required:true
+            },
+        }
     ],
 
     password:{

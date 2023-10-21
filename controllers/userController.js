@@ -218,10 +218,7 @@ export const getShippingInfo = async (req,res) => {
     try {
         const aggregation = await User.aggregate([
             {
-                $match:{
-                    _id:req.user._id,
-                    shippingInfo:{$exists:true}
-                }
+                $match:{_id:req.user._id}
             },
             {
                 $project:{
@@ -235,6 +232,32 @@ export const getShippingInfo = async (req,res) => {
                              ? aggregation[0].shippingInfo
                              : []
         res.status(200).json({shippingInfo})
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+
+export const getCart = async (req,res) => {
+    try {
+        const aggregation = await User.aggregate([
+            {
+                $match:{_id:req.user._id}
+            },
+            {
+                $project:{
+                    cart: 1,
+                    _id:0
+                }
+            },
+        ])
+        
+        const cart = aggregation.length>0
+                    ? aggregation[0].cart
+                    : []
+        res.status(200).json({cart})
     } catch (error) {
         res.status(400).json({error:error.message})
     }

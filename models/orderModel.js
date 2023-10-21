@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema({
             type:Number,
             required:true
         },
-        phoneNo:{
+        phoneNo:{   
             type:String,
             required:true
         }
