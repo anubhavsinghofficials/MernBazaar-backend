@@ -4,7 +4,8 @@ import { Router } from 'express'
 import { sellerAuth, userAuth } from '../middlewares/auth.js'
 import { registerUser,logInUser,logOutUser,logOutFromAllDevices,
          getUserDetails,updateUserDetails,updateUserPassword,
-         getActiveUsers,getUserData, getShippingInfo, getCart } from '../controllers/userController.js'
+         getActiveUsers,getUserData, getShippingInfo, getCart,
+         addToCart, deleteCartProduct} from '../controllers/userController.js'
         
 
 const userRouter = Router()
@@ -20,7 +21,8 @@ userRouter.route("/user").get(userAuth,getUserDetails)
 userRouter.route("/user/password").patch(userAuth,updateUserPassword)
 userRouter.route("/user/shippinginfo").get(userAuth,getShippingInfo)
 userRouter.route("/user/cart").get(userAuth,getCart)
-
+                              .patch(userAuth,addToCart)
+userRouter.route("/user/cart/:id").delete(userAuth,deleteCartProduct)
 
 // Seller Routes _________________________________________
 userRouter.route("/seller/users").get(sellerAuth,getActiveUsers)

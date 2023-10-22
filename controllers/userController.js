@@ -239,7 +239,6 @@ export const getShippingInfo = async (req,res) => {
 
 
 
-
 export const getCart = async (req,res) => {
     try {
         const aggregation = await User.aggregate([
@@ -264,6 +263,48 @@ export const getCart = async (req,res) => {
 }
 
 
+
+export const deleteCartProduct = async (req,res) => {
+    try {
+        const productId = req.params.id
+        if (!productId) {
+            return res.status(400).json({error:'Kindly provide product id'})
+        }
+        req.user.cart = req.user.cart.filter((element) => {
+            return element.product.toString() !== productId
+        })
+        
+        await req.user.save({runValidators:false})
+        res.status(200).json({message:'Item added to cart'})
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+export const addToCart = async (req,res) => {
+    try {
+        const { stock, product, image, quantity, price, name } = req.body
+        if (!stock || !product || !image || !quantity || !price || !name) {
+            return res.status(400).json({error:'Insufficient product data, can not add to cart'})
+        }
+        const cartItemIndex = req.user.cart.findIndex((element) => {
+            return element.product.toString() === product
+        })
+
+        if (cartItemIndex !== -1) {
+            req.user.cart[cartItemIndex] = req.body;
+        } else {
+            req.user.cart.push(req.body);
+        }
+
+        await req.user.save({runValidators:false})
+        res.status(200).json({message:'Item added to cart'})
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
 
 //_______________________________ SELLER CONTROLLERS
 
