@@ -10,6 +10,7 @@ import userRouter from './routes/userRoutes.js'
 import sellerRouter from './routes/sellerRoutes.js'
 import orderRouter from './routes/orderRoutes.js'
 import roleRouter from './routes/roleRoutes.js'
+import paymentRouter from './routes/paymentRoutes.js'
 import cors from 'cors'
 
 const PORT = process.env.PORT
@@ -28,6 +29,7 @@ app.use("/api/v1",userRouter)
 app.use("/api/v1",sellerRouter)
 app.use("/api/v1",orderRouter)
 app.use("/api/v1",roleRouter)
+app.use("/api/v1",paymentRouter)
 
 
 const server = app.listen(PORT, ()=>{

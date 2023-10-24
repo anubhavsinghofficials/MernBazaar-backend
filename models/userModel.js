@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
                 required:true
             },
             pinCode:{
-                type:Number,
+                type:String,
                 required:true
             },
             phone:{

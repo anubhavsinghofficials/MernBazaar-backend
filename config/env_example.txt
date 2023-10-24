@@ -1,11 +1,12 @@
 
-/*  copy & paste all the text below this
-    this paragraph into to your .env or
-    config.env file and fill in the
-    actual values of the field        */
+/*  copy & paste all the text below
+    this paragraph into to your .env
+    or config.env file and fill in
+    the actual values of the fields  */
 
 
 PORT=your_actual_port
 DB_URL=your_actual_database_url
 JWT_KEY=your_actual_jwt_key
 CLIENT=your_actual_Client_baseUrl
+STRIPE_SECRET_KEY=your_actual_Stripe_Secret_key

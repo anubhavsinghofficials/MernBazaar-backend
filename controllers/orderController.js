@@ -7,24 +7,27 @@ import Product from '../models/productModel.js'
 // _______________________________ USER CONTROLLERS
 
 export const newOrder = async (req,res) => {
-    const {shippingInfo, orderItems, paymentInfo, totalPrice} = req.body
-
-    if (!shippingInfo || !orderItems || !paymentInfo || !totalPrice) {
+    const {shippingInfo, isNewAddress, orderItems, paymentInfo, totalPrice} = req.body
+    if (!shippingInfo || !orderItems || !paymentInfo || !totalPrice || isNewAddress===null || isNewAddress===undefined) {
         return res.status(400).json({error:"Kindly fill all the details"})
     }
 
-    const order = new Order({
-        shippingInfo,
-        orderItems,
-        user:req.user._id,
-        paymentInfo,
-        paidAt:Date.now(),
-        totalPrice,
-    })
-
     try {
-        const createdOrder = await order.save()
-        res.status(200).json({message:"order created Successfully",createdOrder})
+        if (isNewAddress) {
+            req.user.shippingInfo = [...req.user.shippingInfo,shippingInfo]
+        }
+        req.user.cart = []
+        await req.user.save()
+
+        await Order.create({
+            shippingInfo,
+            orderItems,
+            user:req.user._id,
+            paymentInfo,
+            paidAt:Date.now(),
+            totalPrice,
+        })
+        res.status(200).json({message:"order created Successfully"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
