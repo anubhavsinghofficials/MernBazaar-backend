@@ -68,10 +68,9 @@ export const tempUserAuth = async (req,res,next) => {
         try {
             const payload = await jwt.verify(token,process.env.JWT_KEY)
             const userFound = await User.findById(payload._id).select("+password")
-            if (!userFound) {
-                return res.status(400).json({error:"Login through user account to do this"})
+            if (userFound) {
+                req.user = userFound
             }
-            req.user = userFound
         }
         catch (error) {
             res.status(401).json({error:error.message})
@@ -94,7 +93,7 @@ export const authRole = async (req,res) => {
         const payload = await jwt.verify(token,process.env.JWT_KEY)
         const userFound = await User.findById(payload._id)
         if (userFound) {
-            return res.status(200).json({role:'user'})
+            return res.status(200).json({role:'user',cartCount:userFound.cart.length})
         }
         
         const sellerFound = await Seller.findById(payload._id)

@@ -55,41 +55,42 @@ export const registerUser = async (req,res) => {
 
 export const logInUser = async (req,res) => {
 
-    const {email, password} = req.body
-    if(!email || !password){
-        return res.status(400).json({error:"Kindly fill all the details"})
+const {email, password} = req.body
+if(!email || !password){
+    return res.status(400).json({error:"Kindly fill all the details"})
+}
+
+try {
+    const FoundUser = await User.findOne({email}).select("+password")
+    if (!FoundUser) {
+        return res.status(400).json({error:"User not found"})
+    }
+    else if (FoundUser.blacklisted){
+        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
+        return res.status(400).json({error})
     }
 
-    try {
-        const FoundUser = await User.findOne({email}).select("+password")
-        if (!FoundUser) {
-            return res.status(400).json({error:"User not found"})
-        }
-        else if (FoundUser.blacklisted){
-            const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-            return res.status(400).json({error})
-        }
-
-        const matched = await bcrypt.compare(password,FoundUser.password)
-        if (!matched) {
-            return res.status(401).json({error:"Invalid Credentials"})
-        }
-
-        const token = await FoundUser.genAuthToken(res)
-        await FoundUser.save({ validateBeforeSave: false })
-
-        const cookieOptions = {
-                    httpOnly: true,
-                    expires: new Date(
-                        Date.now() + 10*24*60*60*1000
-                    )} // see bottom comments
-                            
-        res.cookie("jwt",token, cookieOptions)
-        res.status(200).json({message:'Login successful'})
+    const matched = await bcrypt.compare(password,FoundUser.password)
+    if (!matched) {
+        return res.status(401).json({error:"Invalid Credentials"})
     }
-    catch (error) {
-        res.status(400).json({error:error.message})
-    }
+
+    const token = await FoundUser.genAuthToken(res)
+    await FoundUser.save({ validateBeforeSave: false })
+
+    const cookieOptions = {
+                httpOnly: true,
+                expires: new Date(
+                    Date.now() + 10*24*60*60*1000
+                )} // see bottom comments
+    
+    const cartCount = FoundUser.cart.length
+    res.cookie("jwt",token, cookieOptions)
+    res.status(200).json({message:'Login successful',cartCount})
+}
+catch (error) {
+    res.status(400).json({error:error.message})
+}
 }
 
 
@@ -132,7 +133,8 @@ export const getUserDetails = async (req,res) => {
     }
     const user = {
         name:req.user.name,
-        email:req.user.email
+        email:req.user.email,
+        cartCount:req.user.cart.length
     }
     res.status(200).json({user})
     // or send only relevant data by either

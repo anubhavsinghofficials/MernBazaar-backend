@@ -35,32 +35,12 @@ export const newOrder = async (req,res) => {
 }
 
 
-export const getSingleOrder = async (req,res) => {
-    try {
-        const foundOrder = await Order.findById(req.params.id)
-                                      .populate("user","name email")
-        if (!foundOrder) {
-            return res.status(400).json({error:"Order not found"})
-        }
 
-        res.status(200).json({order:foundOrder})
-    
-    } catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-// add !pageNo || !pageLength || at everywhere needed
 export const getAllUserOrders = async (req,res) => {
     try {
-        // const foundOrders = await Order.find({user:req.user._id.toString()})
-        const foundOrders = await Order.find({user:req.user._id})
-        if (!foundOrders) {
-            res.status(400).json({error:"no order found"})
-        }
-
+        // reverse the order of orders atleast
+        const foundOrders = await Order.find({user:req.user._id}).sort({ createdAt: -1})
         res.status(200).json({totalOrders:foundOrders.length,orders:foundOrders})
-
     } catch (error) {
         res.status(400).json({error:error.message})
     }
@@ -75,8 +55,7 @@ export const getAllUserOrders = async (req,res) => {
 // send different data as the func r same for user
 export const getSingleOrderSeller = async (req,res) => {
     try {
-        const foundOrder = await Order.findById(req.params.id)
-                                      .populate("user","name email")
+        const foundOrder = await Order.findById(req.params.id).populate("user","name email")
         if (!foundOrder) {
             return res.status(400).json({error:"Order not found"})
         }
@@ -159,20 +138,6 @@ export const updateOrderStatus = async (req,res) => {
         res.status(200).json({updatedOrder})
     }
     catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-
-export const deleteOrder = async (req,res) => {
-    try {
-        const order = await Order.findByIdAndDelete(req.params.id)
-        if (!order) {
-            return res.status(400).json({error:"no order found"})
-        }
-
-        res.status(200).json({deletedOrder:order})
-    } catch (error) {
         res.status(400).json({error:error.message})
     }
 }
