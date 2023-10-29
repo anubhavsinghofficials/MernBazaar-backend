@@ -2,29 +2,45 @@
 
 import Product from '../models/productModel.js'
 import Seller from '../models/sellerModel.js'
+import { uploadToCloudinary } from '../helperFunctions.js'
+
+
 
 // ________________________________ SELLER ROUTES
 
 export const createProduct = async (req,res) => {
-    // remember to merge the thumbnail & additional
-    // images into a single (1+5) 6 length array
-    const {price, title, description, category} = req.body
-    if (!price || !title || !description || !category) {
-        res.status(400).json({error:'Enter all the fields'})
+    const { price, title, description, category, stock } = req.body
+    if (!price || !title || !description || !category || !stock || !req.files) {
+        return res.status(400).json({error:'Enter all the fields'})
     }
 
-    req.body.seller = req.seller._id
-    // or seller = req.seller._id
-    // then add seller to new Product({})
-    
-    const net = price.actual*(1 - price.discount/100)
-    const updatedPrice = {...price, net}
-
-    const product = new Product({...req.body,price:updatedPrice})
+    const thumbnailObject = {}
+    const additionalArray = []
+    const files = Object.values(req.files)
 
     try {
+        await uploadToCloudinary(files,thumbnailObject,additionalArray)
+
+        const seller = req.seller._id
+        const parsedPrice = JSON.parse(price)
+        const parsedDescription = JSON.parse(description)
+        const parsedStock = JSON.parse(stock)
+        
+        const product = new Product({
+            title:title,
+            description:parsedDescription,
+            category:category,
+            price:parsedPrice,
+            seller:seller,
+            stock:parsedStock,
+            images:{
+                thumbnail:thumbnailObject,
+                additional:additionalArray
+            }
+        })
+
         const createdProduct = await product.save()
-        res.status(200).json({createdProduct})
+        res.status(200).json({message:'Product created Successfully', productId:createdProduct._id})
     } catch (error) {
         res.status(400).json({error:error.message})
     }

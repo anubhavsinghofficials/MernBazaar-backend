@@ -2,11 +2,17 @@
 /*  copy & paste all the text below
     this paragraph into to your .env
     or config.env file and fill in
-    the actual values of the fields  */
+    the actual values of the fields
+    Don't leave any space in the lines,
+    the spaces below are just to make
+    the example easier to read    */
 
 
-PORT=your_actual_port
-DB_URL=your_actual_database_url
-JWT_KEY=your_actual_jwt_key
-CLIENT=your_actual_Client_baseUrl
-STRIPE_SECRET_KEY=your_actual_Stripe_Secret_key
+PORT                =  your_actual_port
+DB_URL              =  your_actual_database_url
+JWT_KEY             =  your_actual_jwt_key
+CLIENT              =  your_actual_Client_baseUrl
+STRIPE_SECRET_KEY   =  your_actual_Stripe_Secret_key
+CLOUD_NAME          =  your_actual_Cloudinary_Cloud_Name
+API_KEY             =  your_actual_Cloudinary_api_key
+API_SECRET          =  your_actual_Cloudinary_api_secret
