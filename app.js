@@ -40,9 +40,9 @@ cloudinary.config({
     api_secret: process.env.API_SECRET 
 })
 
-  
+// change to listening at host,domain,port
 const server = app.listen(process.env.PORT, ()=>{
-    console.log(`> listening at http://localhost:${process.env.PORT}`)
+    console.log(`> listening at port ${process.env.PORT}`)
 })
 
 

@@ -2,11 +2,80 @@
 
 import Product from '../models/productModel.js'
 import Seller from '../models/sellerModel.js'
-import { uploadToCloudinary } from '../helperFunctions.js'
+import User from '../models/userModel.js'
+import { deleteManyFromCloudinary, deleteOneFromCloudinary, uploadToCloudinary, uploadToCloudinary2 } from '../helperFunctions.js'
 
 
 
 // ________________________________ SELLER ROUTES
+
+
+
+export const getSellerProducts = async (req,res) => {
+    try {
+        const { category, pageNo, pageLength, sort } = req.query
+        
+        if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+            return res.status(400).json({error:"Invalid Page Length or Page Number"})
+        }
+        
+        let filter = {}
+        filter = (category && category !== "") ? {...filter,category}: filter
+
+        let sortCreteria = {date:-1}
+        if (sort) {
+            const validSortFields = ['price', 'ratings', 'createdAt', 'discount', 'stock']
+            const validSortOrders = ['-1', '1']
+            const [sortField, sortOrder] = sort.split('|')
+
+            if (!validSortFields.includes(sortField) || !validSortOrders.includes(sortOrder)) {
+                return res.status(400).json({ error: 'Invalid sort parameters' })
+            } else if (sortField === 'price') {
+                sortCreteria = {'price.net':+sortOrder}
+            } else if (sortField === 'ratings'){
+                sortCreteria = {'overallRating':+sortOrder}
+            } else if (sortField === 'createdAt') {
+                sortCreteria = {'createdAt':+sortOrder}
+            } else if (sortField === 'discount') {
+                sortCreteria = {'price.discount':+sortOrder}
+            } else if (sortField === 'stock') {
+                sortCreteria = {'stock':+sortOrder}
+            }
+        }
+
+        const totalProducts = await Product.countDocuments(filter)
+        const products = await Product.find(filter)
+                                      .select({overallRating:1,price:1,title:1,stock:1,category:1,createdAt:1})
+                                      .sort(sortCreteria)
+                                      .skip((+pageNo - 1)*(+pageLength))
+                                      .limit(pageLength)
+                                      
+        res.status(200).json({totalProducts, products})
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+export const getSellerProductDetails = async (req,res) => {
+    try {
+        const productId = req.params.id
+        if (!productId) {
+            res.status(400).json({error:'Invalid product id, product not found!'})
+        }
+        const productDetails = await Product.findById(productId).select('title price images description category stock _id')
+        if (!productDetails) {
+            return res.status(400).json({error:'Product not found'})
+        }
+        res.status(200).json({productDetails})
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
 
 export const createProduct = async (req,res) => {
     const { price, title, description, category, stock } = req.body
@@ -48,23 +117,63 @@ export const createProduct = async (req,res) => {
 
 
 
-// what about updating the price/images/stock ????
 export const updateProduct = async (req,res) => {
+    const productId = req.params.id
+    const { price, title, description, category, stock, isThumbnail, isAdditional } = req.body
+    if (!price || !title || !description || !category || !stock) {
+        return res.status(400).json({error:'Enter all the fields'})
+    }
+
+    const foundProduct = await Product.findById(productId)
+    if (!foundProduct) {
+        return res.status(400).json({error:'Product not found'})
+    }
+
+    // const seller = req.seller._id
+    const parsedPrice = JSON.parse(price)
+    const parsedDescription = JSON.parse(description)
+    const parsedStock = JSON.parse(stock)
+    const parsedIsThumbnail = JSON.parse(isThumbnail)
+    const parsedIsAdditional = JSON.parse(isAdditional)
+
+    const updatedData = {
+        title:title,
+        description:parsedDescription,
+        category:category,
+        price:parsedPrice,
+        // seller:seller,
+        stock:parsedStock,
+    }
+
     try {
-        // const {title, description, category} = req.body
-        const product = await Product.findById(req.params.id)
-        if (!product) {
-            return res.status(400).json({error:"Product not found"})
+        if ((parsedIsThumbnail || parsedIsAdditional) && req.files) {
+            const images = []
+            const files = Object.values(req.files)
+            await uploadToCloudinary2(files,images)
+            
+            updatedData.images = {...foundProduct.images}
+            if (parsedIsThumbnail && !parsedIsAdditional) {
+                updatedData.images.thumbnail = {
+                    url:images[0].url,
+                    public_id:images[0].public_id,
+                }
+                await deleteOneFromCloudinary(foundProduct.images.thumbnail)
+            }
+            else if (!parsedIsThumbnail && parsedIsAdditional) {
+                updatedData.images.additional = images
+                await deleteManyFromCloudinary(foundProduct.images)
+            }
+            else if (parsedIsThumbnail && parsedIsAdditional) {
+                const [first, ...rest] = images
+                console.log(updatedData.images)
+                updatedData.images.thumbnail = first
+                updatedData.images.additional = rest
+                await deleteOneFromCloudinary(foundProduct.images.thumbnail)
+                await deleteManyFromCloudinary(foundProduct.images.additional)
+            }
         }
-
-        // see comments at bottom to see why we used toString()
-        if (product.seller.toString() !== req.seller._id.toString()) {
-            return res.status(400).json({error:"You can only update your own products"})
-        }   // is this even needed ?
-
-        // see bottom comments
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id,{...req.body},{ new:true, runValidators:true })
-        res.status(200).json({updatedProduct})
+        await Product.findByIdAndUpdate(productId,updatedData,{ new:true, runValidators:true })
+        res.status(200).json({message:'Product Updated Successfully'})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -75,18 +184,16 @@ export const updateProduct = async (req,res) => {
 
 export const deleteProduct = async (req,res) => {
     try {
-        const product = await Product.findById(req.params.id)
-
-        if (!product) {
+        const productId = req.params.id
+        await User.updateMany({ 'cart.product': productId }, { $pull: { cart: { product: productId } } })
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id)
+        if (!deletedProduct) {
             return res.status(400).json({error:"Product not found"})
         }
-        if (product.seller.toString() !== req.seller._id.toString()) {
-            return res.status(400).json({error:"You can only delete your own products"})
-        }
 
-        const deletedProduct = await Product.findByIdAndDelete(req.params.id)
-        res.status(200).json({deletedProduct})
-    
+        await deleteOneFromCloudinary(deletedProduct.images.thumbnail)
+        await deleteManyFromCloudinary(deletedProduct.images.additional)
+        res.status(200).json({message:'Product deleted Successfully'})    
     } catch (error) {
         res.status(400).json({error:error.message})
     }

@@ -29,3 +29,29 @@ export const uploadToCloudinary = async (files,thumbnailObject,additionalArray) 
         index++
     }
 }
+
+
+
+export const uploadToCloudinary2 = async (files,images) => {
+    for (const file of files) {
+        const dataUriObject = getUri(file)
+        const myCloud = await cloudinary.uploader.upload(dataUriObject.content,{
+            folder:"MernBazaar"
+        })
+        images.push({public_id:myCloud.public_id, url:myCloud.secure_url})
+    }
+}
+
+
+
+export const deleteOneFromCloudinary = async (img) => {
+    await cloudinary.uploader.destroy(img.public_id)
+}
+
+export const deleteManyFromCloudinary = async (imagesArray) => {
+    for (const img of imagesArray) {
+        await cloudinary.uploader.destroy(img.public_id)
+    }
+}
+
+

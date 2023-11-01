@@ -153,7 +153,7 @@ export const updateOrderStatus = async (req,res) => {
 
 async function updateStock(id,quantity) {
     try {
-        const product = await Product.findByIdAndUpdate(id,{
+        await Product.findByIdAndUpdate(id,{
             $inc:{stock:-quantity}
         }) // what if stock goes -ve from this?
     
