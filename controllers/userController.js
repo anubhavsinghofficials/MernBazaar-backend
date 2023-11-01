@@ -315,7 +315,7 @@ export const getActiveUsers = async (req,res) => {
         const {pageNo,pageLength} = req.query
 
         if (isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
-            res.status(400).json({error:"Invalid Page Length or Page Number"})
+            return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
 
         const userCount = await User.countDocuments({blacklisted:false})
@@ -326,15 +326,6 @@ export const getActiveUsers = async (req,res) => {
         res.status(200).json({userCount,users})
     }
     catch (error) {
-        res.status(400).json({error:error.message})
-    }
-}
-
-export const getUserData = async (req,res) => {
-    try {
-        const FoundUser = await User.findById(req.params.id)
-        res.status(200).json({user:FoundUser})
-    } catch (error) {
         res.status(400).json({error:error.message})
     }
 }
