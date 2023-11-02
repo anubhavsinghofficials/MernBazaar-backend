@@ -50,7 +50,7 @@ export const getAllUserOrders = async (req,res) => {
 
 // _______________________________ SELLER CONTROLLERS
 
-// send different data as the func r same for user
+
 export const getSingleOrderSeller = async (req,res) => {
     try {
         const foundOrder = await Order.findById(req.params.id).populate("user","name email")
@@ -127,60 +127,41 @@ export const getAllOrders = async (req,res) => {
 
 
 
-// make it all query based rather than params & body ?
 export const updateOrderStatus = async (req,res) => {
     try {
-        const {status} = req.body
-        if (!["delivered", "shipped", "pending"].includes(status)) {
+        const { orderStatus } = req.body
+        if (!["delivered", "shipped", "pending"].includes(orderStatus)) {
             return res.status(400).json({error:"invalid order status"})
         }
 
         const order = await Order.findById(req.params.id)
         if (!order) {
             return res.status(400).json({error:"order not found"})
-        }
-        else if (order.orderStatus === 'delivered') {
+        } else if (order.orderStatus === 'delivered') {
             return res.status(400).json({error:"Product is already delieverd"})
+        } else if (order.orderStatus === 'shipped' && orderStatus === 'pending') {
+            return res.status(400).json({error:"A shipped product can not be set to pending again"})
         }
 
-        // updating the product stocks
         for (const orderitem of order.orderItems) {
-            await updateStock(orderitem.product, orderitem.quantity)
+            await Product.findByIdAndUpdate(orderitem.product,{
+                $inc:{stock:-orderitem.quantity}
+            })
         }
 
-        order.orderStatus = status
+        order.orderStatus = orderStatus
         if (order.orderStatus === "delivered") {
             order.deliveredAt = Date.now()
         }
 
-        const updatedOrder = await order.save()
-        res.status(200).json({updatedOrder})
+        await order.save()
+        res.status(200).json({message:'Order Updated Successfully'})
     }
     catch (error) {
         res.status(400).json({error:error.message})
     }
 }
 
-
-
-
-
-
-
-
-// ________________________________ HELPER FUNCTIONS
-
-async function updateStock(id,quantity) {
-    try {
-        await Product.findByIdAndUpdate(id,{
-            $inc:{stock:-quantity}
-        }) // what if stock goes -ve from this?
-    
-    } catch (error) {
-        throw new Error(error.message);
-    }    
-}
- 
 
 
 
