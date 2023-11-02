@@ -50,8 +50,6 @@ export const getAllUserOrders = async (req,res) => {
 
 // _______________________________ SELLER CONTROLLERS
 
-
-
 // send different data as the func r same for user
 export const getSingleOrderSeller = async (req,res) => {
     try {
@@ -69,37 +67,58 @@ export const getSingleOrderSeller = async (req,res) => {
 
 
 
-// this is too much load on just one call, break it into
-// specific functions according to the front end
 export const getAllOrders = async (req,res) => {
-    try {
-        const {pageNo, pageLength, orderStatus} = req.query
-        
-        if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
-            return res.status(400).json({error:"Invalid Page Length or Page Number"})
-        }
-        if (!["delivered", "shipped", "pending"].includes(orderStatus)) {
-            return res.status(400).json({error:"invalid order status"})
-        }
+    const { pageNo, pageLength, orderStatus, sort } = req.query
+    
+    if (!pageNo || !pageLength || isNaN(pageNo) || isNaN(pageLength) || +pageNo<1 || +pageLength<1) {
+        return res.status(400).json({error:"Invalid Page Length or Page Number"})
+    }
 
-        const AllOrders = await Order.find()
-        let orders = await Order.find({orderStatus})
-        if (!orders) {
-            res.status(400).json({error:"no order found"})
+    if ( orderStatus &&!["delivered", "shipped", "pending"].includes(orderStatus)) {
+        return res.status(400).json({error:"invalid order status"})
+    }
+
+    const filter = orderStatus ? {orderStatus} :{}
+    let sortCreteria = { createdAt:-1 }
+    if (sort) {
+        const validSortFields = ['totalItems', 'totalPrice', 'createdAt']
+        const validSortOrders = ['-1', '1']
+        const [sortField, sortOrder] = sort.split('|')
+
+        if (!validSortFields.includes(sortField) || !validSortOrders.includes(sortOrder)) {
+            return res.status(400).json({ error: 'Invalid sort parameters' })
+        } else if (sortField === 'totalItems') {
+            sortCreteria = {'totalItems':+sortOrder}
+        } else if (sortField === 'totalPrice'){
+            sortCreteria = {'totalPrice':+sortOrder}
+        } else if (sortField === 'createdAt') {
+            sortCreteria = {'createdAt':+sortOrder}
         }
-        // why not delivereddOrders = total - pending - shipped
-        // and instead of countDocuments, just filter from AllOrders
-        const totalOrders = await Order.countDocuments()
-        const pendingOrders = await Order.countDocuments({orderStatus:"pending"})
-        const shippedOrders = await Order.countDocuments({orderStatus:"shipped"})
-        const deliveredOrders = await Order.countDocuments({orderStatus:"delivered"})
-        const totalAmount = AllOrders.reduce((acc,curr) => acc + curr.totalPrice,0) 
+    }
 
-        const start = (+pageNo-1)*(+pageLength)
-        const end = (+pageNo)*(+pageLength)
-        orders = orders.slice(start,end)
+    try{
+        const totalOrders = await Order.countDocuments(filter)
+        const orders = await Order.aggregate([
+            {
+                $match: filter
+            },{
+                $project: {
+                    _id: 1,
+                    orderStatus: 1,
+                    totalPrice: 1,
+                    createdAt: 1,
+                    totalItems: { $size: '$orderItems' }
+                }
+            },{
+                $sort: sortCreteria
+            },{
+                $skip: (+pageNo - 1)*(+pageLength)
+            },{
+                $limit: +pageLength
+            }
+        ])
 
-        res.status(200).json({totalAmount, totalOrders, pendingOrders, shippedOrders, deliveredOrders, orders})
+        res.status(200).json({totalOrders,orders})
 
     } catch (error) {
         res.status(400).json({error:error.message})
