@@ -5,7 +5,7 @@ import { sellerAuth, userAuth } from '../middlewares/auth.js'
 import { registerUser,logInUser,logOutUser,logOutFromAllDevices,
          getUserDetails,updateUserDetails,updateUserPassword,
          getActiveUsers, getShippingInfo, getCart,addToCart,
-         deleteCartProduct} from '../controllers/userController.js'
+         deleteCartProduct, applyCouponCode} from '../controllers/userController.js'
         
 
 const userRouter = Router()
@@ -20,6 +20,7 @@ userRouter.route("/user").get(userAuth,getUserDetails)
                          .patch(userAuth,updateUserDetails)
 userRouter.route("/user/password").patch(userAuth,updateUserPassword)
 userRouter.route("/user/shippinginfo").get(userAuth,getShippingInfo)
+userRouter.route("/user/coupon").post(userAuth,applyCouponCode)
 userRouter.route("/user/cart").get(userAuth,getCart)
                               .patch(userAuth,addToCart)
 userRouter.route("/user/cart/:id").delete(userAuth,deleteCartProduct)

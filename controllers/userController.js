@@ -2,8 +2,8 @@
 
 import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
+import Coupon from '../models/couponModel.js'
 import bcrypt from 'bcryptjs'
-
 
 
 //________________________________ USER CONTROLLERS
@@ -307,6 +307,30 @@ export const addToCart = async (req,res) => {
         res.status(400).json({error:error.message})
     }
 }
+
+
+
+export const applyCouponCode = async (req,res) => {
+    const { couponCode, amount } = req.body
+    console.log(req.body)
+    if (!couponCode || !amount) {
+        return res.status(400).json({error:'Missing Coupon code or Amount'})
+    }
+    try {
+        const foundCoupon = await Coupon.findOne({couponCode})
+        if (!foundCoupon) {
+            return res.status(400).json({error:'No coupon code found'})
+        } else if (amount < foundCoupon.minAmount) {
+            return res.status(400).json({error:`Coupon only applicable on orders above ₹ ${foundCoupon.minAmount}`})
+        } else {
+            res.status(200).json({message:'Coupon Code Applied', discount:foundCoupon.discount})
+        }
+    
+    } catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
 
 //_______________________________ SELLER CONTROLLERS
 

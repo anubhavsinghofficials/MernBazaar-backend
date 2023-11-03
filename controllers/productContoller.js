@@ -3,7 +3,7 @@
 import Product from '../models/productModel.js'
 import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
-import { deleteManyFromCloudinary, deleteOneFromCloudinary, uploadToCloudinary, uploadToCloudinary2 } from '../helperFunctions.js'
+import { deleteManyFromCloudinary, deleteOneFromCloudinary, uploadToCloudinary, uploadToCloudinary2 } from '../utils.js'
 
 
 
