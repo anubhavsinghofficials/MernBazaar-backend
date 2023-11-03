@@ -2,6 +2,7 @@
 
 import Seller from '../models/sellerModel.js'
 import User from '../models/userModel.js'
+import Coupon from '../models/couponModel.js'
 import bcrypt from 'bcryptjs'
 
 
@@ -129,10 +130,7 @@ export const logOutFromAllDevices = async (req,res) => {
 
 
 export const getSellerDetails = async (req,res) => {
-    if (req.seller.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
+    
     const seller = {
         name:req.seller.name,
         email:req.seller.email,
@@ -148,11 +146,6 @@ export const getSellerDetails = async (req,res) => {
 
 
 export const updateSellerDetails = async (req,res) => {
-
-    if (req.seller.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
 
     const {name, email, description, address} = req.body
     
@@ -190,11 +183,6 @@ export const updateSellerDetails = async (req,res) => {
 
 export const updateSellerPassword = async (req,res) => {
 
-    if (req.seller.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
-
     const {currentPassword, newPassword} = req.body
     if (!currentPassword || !newPassword) {
         return res.status(400).json({error:"Kindly fill all the fields"})
@@ -218,3 +206,56 @@ export const updateSellerPassword = async (req,res) => {
         res.status(400).json({error:error.message})
     }
 }
+
+
+
+export const getCoupons = async (_req,res) => {
+    try {
+        const coupons = await Coupon.find()
+        res.status(201).json({coupons})
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+export const createNewCoupon = async (req,res) => {
+    const {couponCode, minAmount, discount} = req.body
+    if (!couponCode || (minAmount && isNaN(minAmount)) || (discount && isNaN(discount))) {
+        return res.status(400).json({error:"Kindly fill all the fields"})
+    }
+
+    const foundCoupon = await Coupon.find({couponCode})
+    if (foundCoupon.length > 0) {
+        return res.status(400).json({error:'Coupon already exists'})
+    }
+    try {
+        await Coupon.create({
+            couponCode,
+            minAmount,
+            discount,
+            seller:req.seller._id
+        })
+        res.status(201).json({message:"Coupon Code Generated"})
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
+export const deleteCoupon = async (req,res) => {
+    try {
+        await Coupon.findByIdAndDelete(req.params.id)
+        res.status(201).json({message:"Coupon deleted"})
+    }
+    catch (error) {
+        res.status(400).json({error:error.message})
+    }
+}
+
+
+
