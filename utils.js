@@ -3,6 +3,14 @@ import {v2 as cloudinary} from 'cloudinary'
 
 
 
+
+export const months = [
+    'Jan', 'Feb', 'Mar', 'Apr','May', 'June',
+    'July','Aug', 'Sept', 'Oct', 'Nov', 'Dec'
+]
+
+
+
 // Cloudinary __________________________________________________________________
 
 const getUri = (file) => {
