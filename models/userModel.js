@@ -99,12 +99,6 @@ const userSchema = new mongoose.Schema({
         default:Date.now
     },
 
-    blacklisted:{
-        type:Boolean,
-        default:false,
-        required:true
-    },
-
     resetPasswordToken:String,
     resetPasswordExpire:Date,
 

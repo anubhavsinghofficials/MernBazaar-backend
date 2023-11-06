@@ -59,12 +59,6 @@ const sellerSchema = new mongoose.Schema({
         required:true
     },
 
-    blacklisted:{
-        type:Boolean,
-        default:false,
-        required:true
-    },
-
     resetPasswordToken:String,
     resetPasswordExpire:Date,
 

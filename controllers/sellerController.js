@@ -68,10 +68,6 @@ export const logInSeller = async (req,res) => {
         if (!FoundSeller) {
             return res.status(400).json({error:"Seller not found"})
         }
-        else if (FoundSeller.blacklisted){
-            const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-            return res.status(400).json({error})
-        }
 
         const matched = await bcrypt.compare(password,FoundSeller.password)
         if (!matched) {
@@ -107,7 +103,6 @@ export const logOutSeller = async (req,res) => {
     }
     catch (error) {
         res.status(400).json({error:error.message})
-        console.log(error)
     }
 }
 
@@ -123,7 +118,6 @@ export const logOutFromAllDevices = async (req,res) => {
     }
     catch (error) {
         res.status(400).json({error:error.message})
-        console.log(error)
     }
 }
 
@@ -138,9 +132,6 @@ export const getSellerDetails = async (req,res) => {
         description:req.seller.description
     }
     res.status(200).json({seller})
-    // or send only relevant data by either
-    // extracting it from the req.user or
-    // findById(req.user._id) 
 }
 
 
@@ -256,6 +247,3 @@ export const deleteCoupon = async (req,res) => {
         res.status(400).json({error:error.message})
     }
 }
-
-
-

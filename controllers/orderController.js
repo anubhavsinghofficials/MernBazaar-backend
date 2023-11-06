@@ -27,7 +27,7 @@ export const newOrder = async (req,res) => {
             paidAt:Date.now(),
             totalPrice,
         })
-        res.status(200).json({message:"order created Successfully"})
+        res.status(201).json({message:"order created Successfully"})
     }
     catch (error) {
         res.status(400).json({error:error.message})
@@ -38,7 +38,6 @@ export const newOrder = async (req,res) => {
 
 export const getAllUserOrders = async (req,res) => {
     try {
-        // reverse the order of orders atleast
         const foundOrders = await Order.find({user:req.user._id}).sort({ createdAt: -1})
         res.status(200).json({totalOrders:foundOrders.length,orders:foundOrders})
     } catch (error) {
@@ -59,7 +58,6 @@ export const getSingleOrderSeller = async (req,res) => {
         }
 
         res.status(200).json({order:foundOrder})
-    
     } catch (error) {
         res.status(400).json({error:error.message})
     }
@@ -161,33 +159,3 @@ export const updateOrderStatus = async (req,res) => {
         res.status(400).json({error:error.message})
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// after cart or buy or after delivered product
-// or at any other complex ? condition
-// decrease stock from the original products
-// also how to from user cart ???
-
-
-// there must be a stock other wise don't let the
-// user add to cart or buy
-
-// when a product is deleted, also delete it from
-// the user's cart !! same for the case when order
-// is delievered

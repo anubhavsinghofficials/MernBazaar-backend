@@ -65,10 +65,6 @@ try {
     if (!FoundUser) {
         return res.status(400).json({error:"User not found"})
     }
-    else if (FoundUser.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
 
     const matched = await bcrypt.compare(password,FoundUser.password)
     if (!matched) {
@@ -105,7 +101,6 @@ export const logOutUser = async (req,res) => {
     }
     catch (error) {
         res.status(400).json({error:error.message})
-        console.log(error)
     }
 }
 
@@ -127,30 +122,17 @@ export const logOutFromAllDevices = async (req,res) => {
 
 
 export const getUserDetails = async (req,res) => {
-    if (req.user.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
     const user = {
         name:req.user.name,
         email:req.user.email,
         cartCount:req.user.cart.length
     }
     res.status(200).json({user})
-    // or send only relevant data by either
-    // extracting it from the req.user or
-    // findById(req.user._id) 
 }
 
 
 
 export const updateUserDetails = async (req,res) => {
-
-    if (req.user.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
-
     const {name, email} = req.body
 
     let updates = {}
@@ -184,12 +166,6 @@ export const updateUserDetails = async (req,res) => {
 
 
 export const updateUserPassword = async (req,res) => {
-
-    if (req.user.blacklisted){
-        const error = "Your account has been blocked by MernBazaar, Contact mernbazaar@gmail.com for more info"
-        return res.status(400).json({error})
-    }
-
     const {currentPassword, newPassword} = req.body
     if (!currentPassword || !newPassword) {
         return res.status(400).json({error:"Kindly fill all the fields"})
@@ -312,7 +288,6 @@ export const addToCart = async (req,res) => {
 
 export const applyCouponCode = async (req,res) => {
     const { couponCode, amount } = req.body
-    console.log(req.body)
     if (!couponCode || !amount) {
         return res.status(400).json({error:'Missing Coupon code or Amount'})
     }
@@ -342,8 +317,8 @@ export const getActiveUsers = async (req,res) => {
             return res.status(400).json({error:"Invalid Page Length or Page Number"})
         }
 
-        const userCount = await User.countDocuments({blacklisted:false})
-        const users = await User.find({blacklisted:false})
+        const userCount = await User.countDocuments()
+        const users = await User.find()
                                 .limit(pageLength)
                                 .skip((+pageNo-1)*(+pageLength))
 

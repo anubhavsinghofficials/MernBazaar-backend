@@ -109,7 +109,7 @@ export const createProduct = async (req,res) => {
         })
 
         const createdProduct = await product.save()
-        res.status(200).json({message:'Product created Successfully', productId:createdProduct._id})
+        res.status(201).json({message:'Product created Successfully', productId:createdProduct._id})
     } catch (error) {
         res.status(400).json({error:error.message})
     }
@@ -129,7 +129,6 @@ export const updateProduct = async (req,res) => {
         return res.status(400).json({error:'Product not found'})
     }
 
-    // const seller = req.seller._id
     const parsedPrice = JSON.parse(price)
     const parsedDescription = JSON.parse(description)
     const parsedStock = JSON.parse(stock)
@@ -141,7 +140,6 @@ export const updateProduct = async (req,res) => {
         description:parsedDescription,
         category:category,
         price:parsedPrice,
-        // seller:seller,
         stock:parsedStock,
     }
 
@@ -165,7 +163,6 @@ export const updateProduct = async (req,res) => {
             }
             else if (parsedIsThumbnail && parsedIsAdditional) {
                 const [first, ...rest] = images
-                console.log(updatedData.images)
                 updatedData.images.thumbnail = first
                 updatedData.images.additional = rest
                 await deleteOneFromCloudinary(foundProduct.images.thumbnail)
@@ -288,7 +285,6 @@ export const deleteReview = async (req,res) => {
             return res.status(400).json({error:"No such review found"})
         }
 
-        // see comment 3 (although even this solution is not safe)
         const count = foundProduct.totalReviews
         const oldRating = foundProduct.overallRating
         const newRating = count !== 1
