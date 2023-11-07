@@ -412,8 +412,8 @@ export const getProducts = async (req,res) => {
                                       .select({overallRating:1,images:1,price:1,title:1,stock:1})
                                       .sort(sortCreteria)
                                       .skip((+pageNo - 1)*(+pageLength))
-                                      .limit(pageLength)
-                                      
+                                      .limit(+pageLength)
+
         res.status(200).json({totalProducts, products})
     } catch (error) {
         res.status(400).json({error:error.message})

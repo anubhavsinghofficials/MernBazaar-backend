@@ -165,7 +165,7 @@ export const getInsights = async (_req,res) => {
                     users : { $sum : 1 }
                 }
             },{
-                $sort : { _id : -1 }
+                $sort : { _id : 1 }
             }
         ])
 
@@ -186,7 +186,7 @@ export const getInsights = async (_req,res) => {
                     revenue : { $sum : '$totalPrice' }
                 }
             },{
-                $sort : { _id : -1 }
+                $sort : { _id : 1 }
             }
         ])
 
