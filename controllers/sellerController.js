@@ -106,7 +106,10 @@ export const logInSeller = async (req,res) => {
 
 export const logOutSeller = async (req,res) => {
     try {
-        res.clearCookie("jwt")
+        res.clearCookie("jwt",{
+            sameSite: 'None',
+            secure: true
+        })
         req.seller.tokens = req.seller.tokens.filter(ele => ele.token !== req.token)
         await req.seller.save({ validateBeforeSave: false })
     
@@ -121,7 +124,10 @@ export const logOutSeller = async (req,res) => {
 
 export const logOutFromAllDevices = async (req,res) => {
     try {
-        res.clearCookie("jwt")
+        res.clearCookie("jwt",{
+            sameSite: 'None',
+            secure: true
+        })
         req.seller.tokens = []
         await req.seller.save({ validateBeforeSave: false })
     

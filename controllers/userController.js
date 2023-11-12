@@ -104,7 +104,10 @@ catch (error) {
 
 export const logOutUser = async (req,res) => {
     try {
-        res.clearCookie("jwt")
+        res.clearCookie("jwt",{
+            sameSite: 'None',
+            secure: true
+        })
         req.user.tokens = req.user.tokens.filter(ele => ele.token !== req.token)
         await req.user.save({ validateBeforeSave: false })
 
@@ -119,7 +122,10 @@ export const logOutUser = async (req,res) => {
 
 export const logOutFromAllDevices = async (req,res) => {
     try {
-        res.clearCookie("jwt")
+        res.clearCookie("jwt",{
+            sameSite: 'None',
+            secure: true
+        })
         req.user.tokens = []
         await req.user.save({ validateBeforeSave: false })
     
