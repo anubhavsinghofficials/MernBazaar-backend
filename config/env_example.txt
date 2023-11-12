@@ -16,3 +16,4 @@ STRIPE_SECRET_KEY   =  your_actual_Stripe_Secret_key
 CLOUD_NAME          =  your_actual_Cloudinary_Cloud_Name
 API_KEY             =  your_actual_Cloudinary_api_key
 API_SECRET          =  your_actual_Cloudinary_api_secret
+NODE_ENV            =  development or production etc etc

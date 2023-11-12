@@ -46,6 +46,12 @@ export const registerSeller = async (req,res) => {
                 expires: new Date(
                     Date.now() + 10*24*60*60*1000
                 )}
+
+        if (process.env.NODE_ENV === 'production') {
+            cookieOptions.sameSite = 'None'
+            cookieOptions.secure = true
+        }
+        
         res.cookie("jwt",token, cookieOptions)
         res.status(201).json({message:'Account created successfully'})
     }
@@ -82,7 +88,12 @@ export const logInSeller = async (req,res) => {
                     expires: new Date(
                                 Date.now() + 10*24*60*60*1000
                     )}
-    
+                    
+        if (process.env.NODE_ENV === 'production') {
+            cookieOptions.sameSite = 'None'
+            cookieOptions.secure = true
+        }
+            
         res.cookie("jwt",token, cookieOptions)
         res.status(200).json({message:'Login successful'})   
     
