@@ -12,19 +12,23 @@ export const getHighlights = async (_req,res) => {
         const usersCount = await User.find().countDocuments()
         const ordersCount = await Order.find().countDocuments()
 
-        const [{revenue}] = await Order.aggregate([
+        const resultArray = await Order.aggregate([
             {
                 $group: {
                     _id: null,
                     revenue: { $sum: '$totalPrice' }
                 },
-            },{
-                $project:{
-                    _id:0,
-                    revenue:1
+            },
+            {
+                $project: {
+                    _id: 0,
+                    revenue: 1
                 }
             }
-        ])
+        ]);
+        
+        const revenue = resultArray.length > 0 ? resultArray[0].revenue : 0;
+        
         res.status(200).json({productsCount, usersCount, ordersCount, revenue})
     
     } catch (error) {
