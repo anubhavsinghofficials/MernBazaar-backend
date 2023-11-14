@@ -59,6 +59,12 @@ const sellerSchema = new mongoose.Schema({
         required:true
     },
 
+    noOfRatings:{
+        type:Number,
+        default:0,
+        required:true
+    },
+
     tokens:[
         {
             token:{

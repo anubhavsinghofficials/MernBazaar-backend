@@ -222,6 +222,7 @@ export const reviewProduct = async (req,res) => {
         }
         
         const count = foundProduct.totalReviews
+        const sellerRatingsCount = seller.noOfRatings
         const oldRating = foundProduct.overallRating
         const existingReview = foundProduct.reviews.find(rev => (
                                 rev.user.toString() === req.user._id.toString()
@@ -232,17 +233,18 @@ export const reviewProduct = async (req,res) => {
         
         const oldSellerScore = seller.sellerScore
         const newSellerScore = existingReview
-                             ? (oldSellerScore*count - existingReview.rating + (+userRating))/count
-                             : (oldSellerScore*count + (+userRating))/(count+1)
+                             ? (oldSellerScore*sellerRatingsCount - existingReview.rating + (+userRating))/sellerRatingsCount
+                             : (oldSellerScore*sellerRatingsCount + (+userRating))/(sellerRatingsCount+1)
 
         if (existingReview) {
             existingReview.rating = +userRating
             existingReview.comment = userComment
-            foundProduct.overallRating = newRating
+            foundProduct.overallRating = +newRating.toFixed(1)
         }
         else{
            foundProduct.totalReviews++
-           foundProduct.overallRating = newRating
+           seller.noOfRatings++
+           foundProduct.overallRating = +newRating.toFixed(1)
            const newReview = {
                 user: req.user._id,
                 name: req.user.name,
@@ -252,7 +254,7 @@ export const reviewProduct = async (req,res) => {
            foundProduct.reviews.push(newReview)
         }
 
-        seller.sellerScore = newSellerScore
+        seller.sellerScore = +newSellerScore.toFixed(1)
         await seller.save()
         await foundProduct.save()
         res.status(200).json({message:"Your review added successfully"})
@@ -291,16 +293,18 @@ export const deleteReview = async (req,res) => {
                         ? (oldRating*count - existingReview.rating)/(count-1)
                         : 0
 
+        const sellerRatingsCount = seller.noOfRatings
         const oldSellerScore = seller.sellerScore
-        const newSellerScore = count !== 1
-                             ? (oldSellerScore*count - existingReview.rating)/(count-1)
+        const newSellerScore = sellerRatingsCount !== 1
+                             ? (oldSellerScore*sellerRatingsCount - existingReview.rating)/(sellerRatingsCount-1)
                              : 0
 
-        seller.sellerScore = newSellerScore
+        seller.sellerScore = +newSellerScore.toFixed(1)
+        seller.noOfRatings--
         await seller.save()
         await Product.findByIdAndUpdate(req.params.id,{
                         $inc:{totalReviews:-1},
-                        $set:{overallRating:newRating},
+                        $set:{overallRating:+newRating.toFixed(1)},
                         $pull:{reviews:{user:existingReview.user.toString()}}  
                     })
 
