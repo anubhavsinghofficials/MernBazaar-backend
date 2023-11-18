@@ -58,7 +58,7 @@ Payments                 - Stripe
 
 &nbsp;
 
-8. Fully Responsive Desing
+8. Fully Responsive Design
 
 ![Responsive-Designa-min](https://github.com/anubhavsinghofficials/MernBazaar-backend/assets/132212797/0ab9edca-a490-4d04-8f21-bb078ada6142)
 
